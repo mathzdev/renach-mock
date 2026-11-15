@@ -67,12 +67,12 @@ export function Habilitacao155({ catalogos, prontuario, form, setForm, prevalida
 
       <div className="painel grade-campos">
         <label>
-          <span className="rotulo">Motivo-Requerimento <small className="pos">pos. 049–052</small></span>
+          <span className="rotulo">Motivo do requerimento <small className="pos">pos. 049–052</small></span>
           <select value="1" disabled><option value="1">1 — Primeira Habilitação</option></select>
           <span className="ajuda">Motivo 1 não pode vir acompanhado de outro (348).</span>
         </label>
         <label>
-          <span className="rotulo">Número-Formulário-RENACH <small className="pos">pos. 038–048</small></span>
+          <span className="rotulo">Número do formulário RENACH <small className="pos">pos. 038–048</small></span>
           <input value={prontuario.formularioRenachEmAndamento} readOnly />
           <span className="ajuda">O mesmo formulário da TR 151 (deve existir na BINCO, 006).</span>
         </label>
@@ -114,10 +114,10 @@ export function Habilitacao155({ catalogos, prontuario, form, setForm, prevalida
       {r && (
         <>
           <div className="cards">
-            <Card titulo="Situação-CNH atual" tom={r.situacaoCnh.codigo === '1' ? 'ok' : 'neutro'} valor={`${r.situacaoCnh.codigo} – ${r.situacaoCnh.descricao}`}
+            <Card titulo="Situação da CNH atual" tom={r.situacaoCnh.codigo === '1' ? 'ok' : 'neutro'} valor={`${r.situacaoCnh.codigo} – ${r.situacaoCnh.descricao}`}
               detalhe={`Cadastrado em ${br(r.dataCadastramento)}`} />
             <Card titulo="Prazo do processo" tom={r.prazoProcesso >= r.dataPrimeiraHabilitacao ? 'ok' : 'erro'} valor={`até ${br(r.prazoProcesso)}`}
-              detalhe="Data-Cadastramento + 1 ano e 60 dias (763)" />
+              detalhe="Data de cadastramento + 1 ano e 60 dias (763)" />
             <Card titulo="Pendências" tom={prevalidacao.pendencias.length ? 'erro' : 'ok'} valor={prevalidacao.pendencias.length || 'Nenhuma'}
               detalhe={prevalidacao.pendencias.join(' · ') || 'Requisitos impeditivos atendidos'} />
             <Card titulo="Pré-validação" tom={pode ? 'ok' : 'erro'} valor={pode ? 'Liberada' : 'Bloqueada'} detalhe={pode ? 'Simulação pode ser executada' : 'Corrija as pendências'} />
@@ -127,13 +127,13 @@ export function Habilitacao155({ catalogos, prontuario, form, setForm, prevalida
             <h3>Resumo para revisão</h3>
             <dl className="campos">
               <div><dt>Candidato</dt><dd>{r.candidato}{r.nomeSocial ? ` (nome social: ${r.nomeSocial})` : ''}</dd></div>
-              <div><dt>Número-Formulário-RENACH</dt><dd>{r.numeroFormularioRenach}</dd></div>
-              <div><dt>Motivo-Requerimento</dt><dd>1 — Primeira Habilitação</dd></div>
+              <div><dt>Número do formulário RENACH</dt><dd>{r.numeroFormularioRenach}</dd></div>
+              <div><dt>Motivo do requerimento</dt><dd>1 — Primeira Habilitação</dd></div>
               <div><dt>Categoria</dt><dd>{r.categoria}</dd></div>
-              <div><dt>Data-Primeira-Habilitação</dt><dd>{br(r.dataPrimeiraHabilitacao)} <small className="muted">(data da 155, 529)</small></dd></div>
+              <div><dt>Data da primeira habilitação</dt><dd>{br(r.dataPrimeiraHabilitacao)} <small className="muted">(data da 155, 529)</small></dd></div>
               <div><dt>Validade da Permissão para Dirigir</dt><dd>{br(r.dataValidadePermissao)} <small className="muted">(1 ano, obs. 1)</small></dd></div>
               <div><dt>Observações (quadro CNH)</dt><dd><code>{r.observacoes}</code></dd></div>
-              <div><dt>Número-Registro</dt><dd>— <small className="muted">(gerado na emissão, TR 171)</small></dd></div>
+              <div><dt>Número de registro</dt><dd>— <small className="muted">(gerado na emissão, TR 171)</small></dd></div>
             </dl>
             <h4>Eventos no prontuário</h4>
             <ul className="lista-eventos">
@@ -182,7 +182,7 @@ export function Habilitacao155({ catalogos, prontuario, form, setForm, prevalida
           <h3>{resultado.habilitado ? 'Aceito na simulação' : 'Rejeitado na simulação'}</h3>
           <p><Retorno retorno={resultado.retorno} /></p>
           {resultado.habilitado
-            ? <p>Situação-CNH demonstrativa: <strong>1 — Emissão Autorizada</strong>. Permissão para Dirigir válida até {br(resultado.prontuario.dadosControle.dataValidadeCnh)}. Nenhuma CNH foi emitida.</p>
+            ? <p>Situação da CNH demonstrativa: <strong>1 — Emissão Autorizada</strong>. Permissão para Dirigir válida até {br(resultado.prontuario.dadosControle.dataValidadeCnh)}. Nenhuma CNH foi emitida.</p>
             : <p>Nenhuma alteração foi feita no prontuário.</p>}
           <button className="btn" onClick={() => onIr('consulta')}>Ver resultado na Consulta 575</button>
           <Diagnostico diag={resultado.diagnostico} />

@@ -76,14 +76,14 @@ export function Cadastro151({ catalogos, candidatos, form, setForm, resultado, e
 
   const grupos: [string, ReactNode[]][] = [
     ['Formulário', [
-      texto('numeroFormularioRenach', 'Número-Formulário-RENACH', '038–048', 11, `UF de origem (${catalogos.ufOrigem}) + 9 dígitos, inexistente na base (003). Não use HAB-...`,
+      texto('numeroFormularioRenach', 'Número do formulário RENACH', '038–048', 11, `UF de origem (${catalogos.ufOrigem}) + 9 dígitos, inexistente na base (003). Não use HAB-...`,
         { onChange: (e: any) => set('numeroFormularioRenach', e.target.value.toUpperCase()), placeholder: `${catalogos.ufOrigem}000000000` }),
-      campo('dataCadastramento', 'Data-Cadastramento', '379–386', <input type="date" value={form.dataCadastramento} onChange={(e) => set('dataCadastramento', e.target.value)} />,
+      campo('dataCadastramento', 'Data de cadastramento', '379–386', <input type="date" value={form.dataCadastramento} onChange={(e) => set('dataCadastramento', e.target.value)} />,
         'Não pode ser maior que a data da transação (810). A 155 precisa sair em até 1 ano e 60 dias (763).'),
     ]],
     ['Identificação', [
-      texto('nomeCandidatoCivil', 'Nome-Candidato-Civil', '049–092', 44, 'Nome de registro civil, sem abreviações (805).'),
-      campo('dataNascimento', 'Data-Nascimento', '093–100', <input type="date" value={form.dataNascimento} onChange={(e) => set('dataNascimento', e.target.value)} />, 'Mínimo de 18 anos (311).'),
+      texto('nomeCandidatoCivil', 'Nome civil do candidato', '049–092', 44, 'Nome de registro civil, sem abreviações (805).'),
+      campo('dataNascimento', 'Data de nascimento', '093–100', <input type="date" value={form.dataNascimento} onChange={(e) => set('dataNascimento', e.target.value)} />, 'Mínimo de 18 anos (311).'),
       campo('sexo', 'Sexo', '101', (
         <select value={form.sexo} onChange={(e) => set('sexo', e.target.value)}>
           <option value="">Selecione…</option><option value="1">1 – Masculino</option><option value="2">2 – Feminino</option>
@@ -94,7 +94,7 @@ export function Cadastro151({ catalogos, candidatos, form, setForm, resultado, e
           {Object.entries(catalogos.nacionalidades).map(([c, n]: any) => <option key={c} value={c}>{c} – {n}</option>)}
         </select>
       ), '3 – Estrangeiro está fora do escopo da POC.'),
-      campo('localidadeNascimento', 'Localidade-Nascimento', '229–233', municipios('localidadeNascimento'), 'Municípios da massa demonstrativa.'),
+      campo('localidadeNascimento', 'Localidade de nascimento', '229–233', municipios('localidadeNascimento'), 'Municípios da massa demonstrativa.'),
       campo('cpf', 'CPF', '218–228', <input value={form.cpf} inputMode="numeric" maxLength={14} onChange={(e) => set('cpf', e.target.value.replace(/\D/g, ''))} />,
         'Não pode pertencer a outro candidato ou condutor (761).'),
     ]],
@@ -104,29 +104,29 @@ export function Cadastro151({ catalogos, candidatos, form, setForm, resultado, e
           {Object.entries(catalogos.tiposDocumentoIdentidade).map(([c, n]: any) => <option key={c} value={c}>{c} – {n}</option>)}
         </select>
       )),
-      texto('docNumero', 'Número-Identidade', '191–205', 15),
-      texto('docOrgao', 'Órgão-Emissor', '206–215', 10),
+      texto('docNumero', 'Número da identidade', '191–205', 15),
+      texto('docOrgao', 'Órgão emissor', '206–215', 10),
       campo('docUf', 'UF do documento', '216–217', ufs('docUf')),
     ]],
     ['Filiação', [
-      texto('nomeMae', 'Nome-Mãe', '102–145', 44, 'Em branco retorna 300 (exigiria confirmação).'),
-      texto('nomePai', 'Nome-Pai', '146–189', 44, 'Opcional.'),
-      texto('filiacaoAfetiva1', 'Filiação-Afetiva-1', '572–615', 44, 'Opcional.'),
-      texto('filiacaoAfetiva2', 'Filiação-Afetiva-2', '616–659', 44, 'Opcional.'),
-      texto('nomeSocial', 'Nome-Social', '528–571', 44, 'Opcional. Se informado, é o nome impresso na CNH.'),
+      texto('nomeMae', 'Nome da mãe', '102–145', 44, 'Em branco retorna 300 (exigiria confirmação).'),
+      texto('nomePai', 'Nome do pai', '146–189', 44, 'Opcional.'),
+      texto('filiacaoAfetiva1', 'Filiação afetiva 1', '572–615', 44, 'Opcional.'),
+      texto('filiacaoAfetiva2', 'Filiação afetiva 2', '616–659', 44, 'Opcional.'),
+      texto('nomeSocial', 'Nome social', '528–571', 44, 'Opcional. Se informado, é o nome impresso na CNH.'),
     ]],
     ['Endereço', [
-      texto('enderecoLogradouro', 'Endereço-Logradouro', '234–283', 50),
-      texto('enderecoNumero', 'Endereço-Número', '284–293', 10),
-      texto('enderecoComplemento', 'Endereço-Complemento', '294–323', 30),
-      texto('enderecoBairro', 'Endereço-Bairro', '324–353', 30),
-      campo('enderecoCep', 'Endereço-CEP', '354–361', <input value={form.enderecoCep} inputMode="numeric" maxLength={9} onChange={(e) => set('enderecoCep', e.target.value.replace(/\D/g, ''))} />),
-      campo('enderecoMunicipio', 'Endereço-Município', '362–366', municipios('enderecoMunicipio')),
-      campo('enderecoUf', 'Endereço-UF', '367–368', ufs('enderecoUf'), `Igual à UF de origem (${catalogos.ufOrigem}).`),
+      texto('enderecoLogradouro', 'Logradouro', '234–283', 50),
+      texto('enderecoNumero', 'Número', '284–293', 10),
+      texto('enderecoComplemento', 'Complemento', '294–323', 30),
+      texto('enderecoBairro', 'Bairro', '324–353', 30),
+      campo('enderecoCep', 'CEP', '354–361', <input value={form.enderecoCep} inputMode="numeric" maxLength={9} onChange={(e) => set('enderecoCep', e.target.value.replace(/\D/g, ''))} />),
+      campo('enderecoMunicipio', 'Município', '362–366', municipios('enderecoMunicipio')),
+      campo('enderecoUf', 'UF', '367–368', ufs('enderecoUf'), `Igual à UF de origem (${catalogos.ufOrigem}).`),
     ]],
     ['Contato (opcional)', [
       campo('ddd', 'DDD', '457–458', <input value={form.ddd} inputMode="numeric" maxLength={2} onChange={(e) => set('ddd', e.target.value.replace(/\D/g, ''))} />),
-      campo('telefoneCelular', 'Telefone-Celular', '459–467', <input value={form.telefoneCelular} inputMode="numeric" maxLength={9} placeholder="9 dígitos (fictício)" onChange={(e) => set('telefoneCelular', e.target.value.replace(/\D/g, ''))} />),
+      campo('telefoneCelular', 'Telefone celular', '459–467', <input value={form.telefoneCelular} inputMode="numeric" maxLength={9} placeholder="9 dígitos (fictício)" onChange={(e) => set('telefoneCelular', e.target.value.replace(/\D/g, ''))} />),
       campo('email', 'E-mail', '468–527', <input type="email" value={form.email} maxLength={60} placeholder="exemplo@exemplo.invalid" onChange={(e) => set('email', e.target.value)} />),
     ]],
   ];
@@ -144,9 +144,9 @@ export function Cadastro151({ catalogos, candidatos, form, setForm, resultado, e
           <h2 id="t151">Cadastro do candidato</h2>
         </div>
       </header>
-      <p className="nota">
-        Leiaute do Manual RENACH v8.2 <FonteSelo fonte="MANUAL" />. O candidato é identificado pelo Número-Formulário-RENACH até a emissão:
-        o Número-Registro só é gerado pela gráfica (TR 171), fora desta POC.
+      <p className="nota nota-tecnica">
+        Leiaute do Manual RENACH v8.2 <FonteSelo fonte="MANUAL" />. O candidato é identificado pelo Número do formulário RENACH até a emissão:
+        o Número de registro só é gerado pela gráfica (TR 171), fora desta POC.
       </p>
 
       <div className="atalhos">
@@ -180,8 +180,8 @@ export function Cadastro151({ catalogos, candidatos, form, setForm, resultado, e
           <p><Retorno retorno={resultado.retorno} /></p>
           {resultado.aceito ? (
             <>
-              <p>Candidato incluído com Situação-CNH <strong>0 – Inexistente</strong>, formulário {resultado.prontuario.formularioRenachEmAndamento}.
-                Próximo passo: registrar exames e cursos pela TR 181 com Tipo-Chave 1.</p>
+              <p>Candidato incluído com Situação da CNH <strong>0 – Inexistente</strong>, formulário {resultado.prontuario.formularioRenachEmAndamento}.
+                Próximo passo: registrar exames e cursos pela TR 181 com Tipo de chave 1.</p>
               <div className="acoes">
                 <button className="btn" onClick={() => onIr('consulta')}>Conferir na Consulta 575</button>
                 <button className="btn btn-primario" onClick={() => onIr('eventos')}>Seguir para Eventos (TR 181) →</button>

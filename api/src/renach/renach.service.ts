@@ -632,7 +632,7 @@ export class RenachService {
     const R = (id: string, titulo: string, ok: boolean, okMsg: string, falhaMsg: string, codigo: string, ref: string, extra: Partial<Validacao> = {}) =>
       req.push({ ...regra(id, titulo, ok, okMsg, falhaMsg, { codigo: ret(codigo), referencia: `TR 159 · ${ref} · cód. ${codigo}` }), ...extra });
 
-    req.push({ id: 'M5', titulo: 'Motivo-Requerimento 5 — Renovação de Exames', status: 'ATENDIDO', impeditivo: true,
+    req.push({ id: 'M5', titulo: 'Motivo do requerimento 5 — Renovação de Exames', status: 'ATENDIDO', impeditivo: true,
       detalhe: 'Único motivo executado nesta etapa da POC.', fonte: 'MANUAL', referencia: 'Campos pré-codificados · MOTIVO-REQUERIMENTO' });
     R('R01', 'UF de origem igual à UF de domínio', p.dadosCadastrais.ufDominio === UF_ORIGEM_DEMO,
       `UF de domínio ${p.dadosCadastrais.ufDominio}.`, `UF de domínio é ${p.dadosCadastrais.ufDominio}, diferente da origem ${UF_ORIGEM_DEMO}.`, '011', 'Consistência 3');

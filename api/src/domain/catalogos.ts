@@ -152,9 +152,9 @@ export const MOTIVOS_REQUERIMENTO: Record<string, string> = {
 };
 
 export const TIPOS_CHAVE: Record<string, string> = {
-  '1': 'Número-Formulário-RENACH',
-  '2': 'Número-Registro',
-  '7': 'Número-CPF',
+  '1': 'Número do formulário RENACH',
+  '2': 'Número de registro',
+  '7': 'CPF',
 };
 
 export const MOTIVOS_BLOQUEIO: Record<string, string> = {

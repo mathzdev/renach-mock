@@ -657,7 +657,7 @@ export class HabilitacaoService {
     const curso = (c: string) => p.cursos.find((x) => x.codigoCurso === c);
     const vigente = (dv: string | null) => !dv || dv > hoje;
 
-    req.push({ id: 'M1', titulo: 'Motivo-Requerimento 1 — Primeira Habilitação', status: 'ATENDIDO', impeditivo: true, fonte: 'MANUAL',
+    req.push({ id: 'M1', titulo: 'Motivo do requerimento 1 — Primeira Habilitação', status: 'ATENDIDO', impeditivo: true, fonte: 'MANUAL',
       detalhe: 'Motivo 1 sozinho, como exige o retorno 348.', referencia: 'TR 155 · quadro Motivo-Requerimento 1' });
     R('H01', 'UF de origem igual à UF de domínio', d.ufDominio === UF_ORIGEM_DEMO, `UF de domínio ${d.ufDominio}.`, `UF de domínio é ${d.ufDominio}.`, '011', 'Consistência VI');
     R('H02', 'Candidato ainda não habilitado', dc.situacaoCnh === '0', 'Situação-CNH 0 – Inexistente.',
@@ -674,7 +674,7 @@ export class HabilitacaoService {
     const prazo = somarDias(somarAnos(d.dataCadastramento, 1), 60);
     R('H05', 'Processo dentro de 1 ano e 60 dias do cadastramento', hoje <= prazo, `Cadastrado em ${br(d.dataCadastramento)}; prazo até ${br(prazo)}.`,
       `Cadastrado em ${br(d.dataCadastramento)}; o prazo terminou em ${br(prazo)}.`, '763', 'Consistências VII e XVII');
-    req.push({ id: 'H06', titulo: 'Data-Primeira-Habilitação igual à data da transação', status: 'ATENDIDO', impeditivo: true, fonte: 'MANUAL',
+    req.push({ id: 'H06', titulo: 'Data da primeira habilitação igual à data da transação', status: 'ATENDIDO', impeditivo: true, fonte: 'MANUAL',
       detalhe: `O payload usa a data da 155 (${br(hoje)}).`, referencia: 'TR 155 · Consistência VIII · cód. 529' });
 
     // Cursos e exames exigidos (quadros Curso x Motivo e Exame x Motivo, Consistência XXI)

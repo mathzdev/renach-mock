@@ -25,7 +25,7 @@ const ETAPAS: Record<Jornada, { id: Etapa; rotulo: string; tr: string }[]> = {
   ],
 };
 
-/** Chave RENACH do prontuário: candidato pelo formulário (Tipo-Chave 1), condutor pelo registro (Tipo-Chave 2). */
+/** Chave RENACH do prontuário: candidato pelo formulário (Tipo de chave 1), condutor pelo registro (Tipo de chave 2). */
 const chaveDe = (p: any): [string, string] | null => (!p ? null : p.natureza === '1' ? ['1', p.formularioRenachEmAndamento] : ['2', p.numeroRegistro]);
 
 function mensagemErro(e: unknown): string {
@@ -38,6 +38,8 @@ export function App() {
   const [demonstrativos, setDemonstrativos] = useState<any[]>([]);
   const [erroGeral, setErroGeral] = useState('');
   const [jornada, setJornada] = useState<Jornada>('renovacao');
+  // Modo apresentação (padrão) esconde posições de leiaute, referências do Manual e diagnóstico.
+  const [tecnico, setTecnico] = useState(false);
   const [etapa, setEtapa] = useState<Etapa>('consulta');
   const [ocupado, setOcupado] = useState(false);
 
@@ -263,14 +265,20 @@ export function App() {
   const etapas = ETAPAS[jornada];
 
   return (
-    <div className="app">
+    <div className={`app ${tecnico ? 'modo-tecnico' : 'modo-cliente'}`}>
       <header className="cabecalho">
         <div className="cabecalho-linha">
           <div className="marca">
             <strong>RENACH</strong>
             <span className="muted">{jornada === 'renovacao' ? 'Jornada de renovação' : 'Jornada de primeira habilitação'}</span>
           </div>
-          <span className="selo-demo" role="note">Ambiente Demonstrativo — Dados Fictícios</span>
+          <div className="cabecalho-acoes">
+            <label className="alternar">
+              <input type="checkbox" checked={tecnico} onChange={(e) => setTecnico(e.target.checked)} />
+              <span>Detalhes técnicos</span>
+            </label>
+            <span className="selo-demo" role="note">Ambiente Demonstrativo — Dados Fictícios</span>
+          </div>
         </div>
         <div className="jornadas" role="group" aria-label="Jornada">
           <button type="button" className="jornada" aria-pressed={jornada === 'renovacao'} onClick={() => escolherJornada('renovacao')}>Renovação · Motivo 5</button>
@@ -285,7 +293,7 @@ export function App() {
               {candidato
                 ? <span>Cat. {prontuario.dadosControle.categoriaAutorizada ?? form155.categoria} (pretendida)</span>
                 : <span>Cat. {prontuario.dadosControle.categoriaAtual}</span>}
-              <span>Situação-CNH {prontuario.dadosControle.situacaoCnh} – {catalogos?.situacoesCnh[prontuario.dadosControle.situacaoCnh]}</span>
+              <span>Situação da CNH {prontuario.dadosControle.situacaoCnh} – {catalogos?.situacoesCnh[prontuario.dadosControle.situacaoCnh]}</span>
               {prontuario.processoEstadualReferencia && <span className="muted">Proc. estadual {prontuario.processoEstadualReferencia} (referência)</span>}
             </>
           ) : <span className="muted">{jornada === 'renovacao' ? 'Nenhum prontuário consultado' : 'Nenhum candidato selecionado'}</span>}

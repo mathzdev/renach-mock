@@ -108,14 +108,14 @@ export function Eventos181(props: Props) {
     <section aria-labelledby="tev">
       <header className="pagina-topo">
         <div>
-          <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo-Chave 1 (Formulário RENACH)</p>
+          <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo de chave 1 (Formulário RENACH)</p>
           <h2 id="tev">Exames e cursos do candidato</h2>
         </div>
       </header>
 
       <div className="painel">
         <h3>Eventos exigidos para a primeira habilitação · categoria {categoria}</h3>
-        <p className="nota">Quadros Curso x Motivo e Exame x Motivo da TR 155 <FonteSelo fonte="MANUAL" />. Clique em um item para abrir o formulário dele.</p>
+        <p className="nota nota-tecnica">Quadros Curso x Motivo e Exame x Motivo da TR 155 <FonteSelo fonte="MANUAL" />. Clique em um item para abrir o formulário dele.</p>
         <ul className="lista-eventos">
           {itens.map((i) => (
             <li key={i.id}>
@@ -177,16 +177,16 @@ function RegistroCurso({ catalogos, prontuario, form, setForm, resultado, envian
 
   return (
     <>
-      <p className="nota">
-        Tipo-Evento C (Curso), posições 051 a 152 <FonteSelo fonte="MANUAL" />. Cursos de formação 31 a 34: sem Modalidade e sem Data-Validade.
+      <p className="nota nota-tecnica">
+        Tipo de evento C (Curso), posições 051 a 152 <FonteSelo fonte="MANUAL" />. Cursos de formação 31 a 34: sem Modalidade e sem Data de validade.
         {existente ? ` Já existe Curso ${form.codigoCurso} (${br(existente.dataFimCurso)}): um novo envio é S – Substituição.` : ''}
       </p>
       <form className="form-grupos" onSubmit={(e) => { e.preventDefault(); setTentou(true); if (!Object.keys(errosLocais).length) setConfirmar(true); }} noValidate>
         <fieldset className="painel">
           <legend>Curso</legend>
           <div className="grade-campos">
-            {campo('numero', 'Número-Formulário-RENACH (Tipo-Chave 1)', '038–049', <input value={form.numero} readOnly />)}
-            {campo('codigoCurso', 'Código-Curso', '052–053', (
+            {campo('numero', 'Número do formulário RENACH (Tipo de chave 1)', '038–049', <input value={form.numero} readOnly />)}
+            {campo('codigoCurso', 'Curso', '052–053', (
               <select value={form.codigoCurso} onChange={(e) => {
                 const c = e.target.value;
                 const tem = prontuario.cursos.some((x: any) => x.codigoCurso === c);
@@ -195,17 +195,17 @@ function RegistroCurso({ catalogos, prontuario, form, setForm, resultado, envian
                 {['31', '32', '33', '34'].map((c) => <option key={c} value={c}>{c} — {catalogos.cursos[c]}</option>)}
               </select>
             ))}
-            {campo('tipoAtualizacao', 'Tipo-Atualização', '051', (
+            {campo('tipoAtualizacao', 'Tipo de atualização', '051', (
               <select value={form.tipoAtualizacao} onChange={(e) => set('tipoAtualizacao', e.target.value)}>
                 <option value="I">I – Inclusão</option><option value="S">S – Substituição</option>
               </select>
             ))}
-            {campo('dataInicioCurso', 'Data-Início-Curso', '070–077', <input type="date" value={form.dataInicioCurso} onChange={(e) => set('dataInicioCurso', e.target.value)} />)}
-            {campo('dataFimCurso', 'Data-Fim-Curso', '078–085', <input type="date" value={form.dataFimCurso} onChange={(e) => set('dataFimCurso', e.target.value)} />)}
-            {campo('cargaHoraria', form.codigoCurso === '34' ? 'Carga-Horária (minutos)' : 'Carga-Horária (horas)', '086–088',
+            {campo('dataInicioCurso', 'Início do curso', '070–077', <input type="date" value={form.dataInicioCurso} onChange={(e) => set('dataInicioCurso', e.target.value)} />)}
+            {campo('dataFimCurso', 'Fim do curso', '078–085', <input type="date" value={form.dataFimCurso} onChange={(e) => set('dataFimCurso', e.target.value)} />)}
+            {campo('cargaHoraria', form.codigoCurso === '34' ? 'Carga horária (minutos)' : 'Carga horária (horas)', '086–088',
               <input value={form.cargaHoraria} inputMode="numeric" maxLength={3} onChange={(e) => set('cargaHoraria', e.target.value.replace(/\D/g, ''))} />,
               form.codigoCurso === '34' ? 'No Curso 34 a carga é em minutos, mínimo 150 (593).' : 'Até 3 dígitos.')}
-            {campo('numeroCertificado', 'Número-Certificado', '055–069', <input value={form.numeroCertificado} maxLength={15} placeholder="Opcional" onChange={(e) => set('numeroCertificado', e.target.value.toUpperCase())} />)}
+            {campo('numeroCertificado', 'Número do certificado', '055–069', <input value={form.numeroCertificado} maxLength={15} placeholder="Opcional" onChange={(e) => set('numeroCertificado', e.target.value.toUpperCase())} />)}
             {campo('categoria', 'Categoria', '129–132', (
               <select value={form.categoria} onChange={(e) => set('categoria', e.target.value)}>
                 <option value="">—</option>
@@ -228,19 +228,19 @@ function RegistroCurso({ catalogos, prontuario, form, setForm, resultado, envian
                   <option key={p.cpf} value={p.cpf}>{p.nome} — {p.funcao} — {catalogos.entidades.find((x: any) => x.cnpj === p.entidade)?.nome}</option>
                 ))}
               </select>
-              <span className="ajuda">Preenche CPF-Instrutor e o CNPJ do CFC. Função e tipo de entidade são conferidos (662).</span>
+              <span className="ajuda">Preenche CPF do instrutor e o CNPJ do CFC. Função e tipo de entidade são conferidos (662).</span>
             </label>
-            {campo('cpfInstrutor', 'CPF-Instrutor', '103–113', <input value={form.cpfInstrutor ? mascaraCpf(form.cpfInstrutor) : ''} readOnly placeholder="Selecione o instrutor" />)}
-            {campo('cnpjEntidadeCredenciada', 'CNPJ-Entidade-Credenciada', '089–102', <input value={form.cnpjEntidadeCredenciada ? mascaraCnpj(form.cnpjEntidadeCredenciada) : ''} readOnly placeholder="Vem do instrutor" />)}
-            {campo('municipioCurso', 'Município-Curso', '114–118', (
+            {campo('cpfInstrutor', 'CPF do instrutor', '103–113', <input value={form.cpfInstrutor ? mascaraCpf(form.cpfInstrutor) : ''} readOnly placeholder="Selecione o instrutor" />)}
+            {campo('cnpjEntidadeCredenciada', 'CNPJ da entidade credenciada', '089–102', <input value={form.cnpjEntidadeCredenciada ? mascaraCnpj(form.cnpjEntidadeCredenciada) : ''} readOnly placeholder="Vem do instrutor" />)}
+            {campo('municipioCurso', 'Município do curso', '114–118', (
               <select value={form.municipioCurso} onChange={(e) => setForm({ ...form, municipioCurso: e.target.value, ufCurso: catalogos.municipios[e.target.value]?.uf ?? form.ufCurso })}>
                 {Object.entries(catalogos.municipios).map(([k, v]: any) => <option key={k} value={k}>{k} – {v.nome}/{v.uf}</option>)}
               </select>
             ))}
-            {campo('ufCurso', 'UF-Curso', '119–120', (
+            {campo('ufCurso', 'UF do curso', '119–120', (
               <select value={form.ufCurso} onChange={(e) => set('ufCurso', e.target.value)}>{catalogos.ufs.map((u: string) => <option key={u}>{u}</option>)}</select>
             ))}
-            {campo('observacoesCurso', 'Observações-Curso', '133–152', <input value="99 – Sem observação" readOnly />)}
+            {campo('observacoesCurso', 'Observações do curso', '133–152', <input value="99 – Sem observação" readOnly />)}
           </div>
         </fieldset>
         <div className="acoes-pagina barra-fixa">

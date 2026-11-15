@@ -195,6 +195,10 @@ Categoria-Atual fica em branco (Consistência XIII); autorização transacao '15
   payload, validacoes, retorno, estadoAnterior/Posterior, mutacao, transmissao, e `interpretacoes`/`lacunas` quando houver.
   O componente `Diagnostico` agrupa as validações pelas quatro fontes.
 - Datas internas em ISO `yyyy-mm-dd`; na tela, `br()`. Nunca use `new Date()` direto para "hoje" na API: use `hojeIso()`.
+- Rótulos na tela em linguagem natural ("Número do formulário RENACH", "Situação da CNH"), sem os hifens do Manual; o nome
+  oficial fica em `nomeManual` (181) e no diagnóstico. Mensagens de retorno (`MSG`) continuam com o texto oficial.
+- A tela abre em modo apresentação: posições de leiaute (`.pos`), sequência (`.seq`), referências (`.ref`), notas de leiaute
+  (`.nota-tecnica`) e o `Diagnostico` só aparecem com "Detalhes técnicos" ligado no cabeçalho.
 - Textos de interface em português, operacionais, sem prometer transmissão. Toda ação simulada passa por `Confirmacao`.
 - Layout: nada pode causar overflow horizontal em 390 px; tabela larga vai dentro de `.tabela-rolagem`.
 

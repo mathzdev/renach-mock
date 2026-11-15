@@ -144,8 +144,8 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
     'Condutor/Prontuário': [
       campo('tipoChave', (
         <select value={form.tipoChave} onChange={(e) => set('tipoChave', e.target.value)}>
-          <option value="2">2 – Número-Registro</option>
-          <option value="1">1 – Número-Formulário-RENACH (só candidato)</option>
+          <option value="2">2 – Número de registro</option>
+          <option value="1">1 – Número do formulário RENACH (só candidato)</option>
         </select>
       )),
       campo('numero', <input value={form.numero} maxLength={11} onChange={(e) => set('numero', e.target.value.toUpperCase())} />),
@@ -271,14 +271,14 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
       {embutido ? <h3 id="t181" className="sr-only">Registro de exame</h3> : (
         <header className="pagina-topo">
           <div>
-            <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo-Evento E (Exame)</p>
+            <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo de evento E (Exame)</p>
             <h2 id="t181">Registro de exame</h2>
           </div>
         </header>
       )}
 
-      <p className="nota">
-        Leiaute do Manual RENACH v8.2 <FonteSelo fonte="MANUAL" />: identificação (Tipo-Chave e Número) e os 16 atributos do Evento E, nas posições 051 a 273.
+      <p className="nota nota-tecnica">
+        Leiaute do Manual RENACH v8.2 <FonteSelo fonte="MANUAL" />: identificação (Tipo de chave e Número) e os 16 atributos do Evento E, nas posições 051 a 273.
         {existente ? ` Já existe Exame ${form.codigoExame} de ${br(existente.dataExame)} no prontuário: um exame novo é registrado como S – Substituição.` : ''}
       </p>
 
@@ -308,7 +308,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
               <p>
                 Exame {resultado.evento.codigoExame} de {br(resultado.evento.dataExame)} registrado no prontuário em memória.
                 {resultado.situacaoCnh.antes !== resultado.situacaoCnh.depois &&
-                  ` Situação-CNH: ${resultado.situacaoCnh.antes} → ${resultado.situacaoCnh.depois} – ${catalogos.situacoesCnh[resultado.situacaoCnh.depois]}.`}
+                  ` Situação da CNH: ${resultado.situacaoCnh.antes} → ${resultado.situacaoCnh.depois} – ${catalogos.situacoesCnh[resultado.situacaoCnh.depois]}.`}
               </p>
               <div className="acoes">
                 <button className="btn" onClick={() => onIr('consulta')}>Conferir na Consulta 575</button>
@@ -333,7 +333,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
         <ul className="resumo-confirmacao">
           <li>{prontuario.natureza === '1' ? 'Candidato' : 'Condutor'}: <strong>{prontuario.dadosCadastrais.nomeCondutorCivil}</strong></li>
           <li>{form.tipoAtualizacao === 'S' ? 'Substituição' : 'Inclusão'} do Exame {form.codigoExame} em {br(form.dataExame)} — resultado {form.resultado} ({resultados[form.resultado]})</li>
-          {form.dataValidade && <li>Data-Validade: {br(form.dataValidade)}</li>}
+          {form.dataValidade && <li>Data de validade: {br(form.dataValidade)}</li>}
           <li>Examinador: {prof?.nome ?? '—'} · Entidade: {ent?.nome ?? '—'}</li>
           <li>Observações: {form.observacoes.join(', ')}</li>
         </ul>

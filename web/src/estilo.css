@@ -26,6 +26,11 @@ pre { background: var(--neutro-fundo); padding: .75rem; border-radius: 6px; over
 .cabecalho-linha { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .6rem 1rem; flex-wrap: wrap; }
 .marca { display: flex; gap: .5rem; align-items: baseline; }
 .marca strong { font-size: 1.1rem; letter-spacing: .04em; color: var(--primaria); }
+.cabecalho-acoes { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.alternar { flex-direction: row; align-items: center; gap: .4rem; font-size: .82rem; color: var(--suave); cursor: pointer; }
+.alternar input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--primaria); }
+/* Modo apresentação: esconde o que é de interesse técnico (posições, sequência do leiaute, referências e diagnóstico). */
+.modo-cliente .pos, .modo-cliente .seq, .modo-cliente .ref, .modo-cliente .diagnostico, .modo-cliente .nota-tecnica { display: none; }
 .selo-demo { background: var(--demo-fundo); color: var(--demo); border: 1px solid currentColor; padding: .15rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: 600; }
 .condutor { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding: 0 1rem .5rem; font-size: .88rem; }
 .progresso { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--borda); }

@@ -12,9 +12,9 @@ interface Props {
 }
 
 const TIPOS = [
-  { v: '2', r: '2 – Número-Registro', ph: '11 dígitos' },
+  { v: '2', r: '2 – Número de registro', ph: '11 dígitos' },
   { v: '7', r: '7 – CPF', ph: '000.000.000-00' },
-  { v: '1', r: '1 – Número-Formulário-RENACH (só candidato)', ph: 'UF + 9 dígitos' },
+  { v: '1', r: '1 – Número do formulário RENACH (só candidato)', ph: 'UF + 9 dígitos' },
 ];
 
 export function Consulta575({ catalogos, demonstrativos, resultado, carregando, onConsultar, onIr }: Props) {
@@ -51,7 +51,7 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
 
       <form className="painel form-linha" onSubmit={enviar} noValidate>
         <label>
-          Tipo-Chave
+          Tipo de chave
           <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
             {TIPOS.map((t) => <option key={t.v} value={t.v}>{t.r}</option>)}
           </select>
@@ -82,9 +82,9 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
       {resultado && (
         <div className="painel consulta-id">
           <Campos itens={[
-            ['Chave utilizada', `Tipo-Chave ${resultado.consulta.descricaoTipoChave}: ${resultado.consulta.tipoChave === '7' ? mascaraCpf(resultado.consulta.numero) : resultado.consulta.numero}`],
+            ['Chave utilizada', `Tipo de chave ${resultado.consulta.descricaoTipoChave}: ${resultado.consulta.tipoChave === '7' ? mascaraCpf(resultado.consulta.numero) : resultado.consulta.numero}`],
             ['Resultado', <Selo tipo={resultado.consulta.resultado === 'LOCALIZADO' ? 'ok' : 'erro'}>{resultado.consulta.resultado}</Selo>],
-            ['Código-Retorno-Execução', <Retorno retorno={resultado.consulta.retorno} />],
+            ['Código de retorno', <Retorno retorno={resultado.consulta.retorno} />],
           ]} />
           {resultado.diagnostico?.observacao && <p className="nota">{resultado.diagnostico.observacao}</p>}
         </div>
@@ -93,18 +93,18 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
       {p && (
         <>
           <div className="cards">
-            <Card titulo="Situação-CNH" tom={dc.situacaoCnh === '1' ? 'ok' : dc.situacaoCnh === '6' ? 'aviso' : 'neutro'}
+            <Card titulo="Situação da CNH" tom={dc.situacaoCnh === '1' ? 'ok' : dc.situacaoCnh === '6' ? 'aviso' : 'neutro'}
               valor={sit(dc.situacaoCnh)} detalhe={`Anterior: ${sit(dc.situacaoCnhAnterior)}`} />
             {candidato ? (
               <Card titulo="Natureza" tom="neutro" valor="1 – Candidato"
-                detalhe={dc.situacaoCnh === '1' ? `Permissão até ${br(dc.dataValidadeCnh)} · Número-Registro gerado na emissão (TR 171)` : `Cadastrado em ${br(d.dataCadastramento)} · sem Número-Registro`} />
+                detalhe={dc.situacaoCnh === '1' ? `Permissão até ${br(dc.dataValidadeCnh)} · Número de registro gerado na emissão (TR 171)` : `Cadastrado em ${br(d.dataCadastramento)} · sem Número de registro`} />
             ) : (
-              <Card titulo="Data-Validade-CNH" tom={(dc.dataValidadeCnh ?? '') < new Date().toISOString().slice(0, 10) ? 'aviso' : 'ok'}
+              <Card titulo="Validade da CNH" tom={(dc.dataValidadeCnh ?? '') < new Date().toISOString().slice(0, 10) ? 'aviso' : 'ok'}
                 valor={br(dc.dataValidadeCnh)} detalhe={`Última emissão: ${br(dc.dataUltimaEmissaoHistorico)}`} />
             )}
             <Card titulo="Exame 03 – Aptidão Física e Mental" tom={candidato ? (ex03 ? 'ok' : 'aviso') : ex03Novo ? 'ok' : 'aviso'}
               valor={ex03 ? `${br(ex03.dataExame)} · ${ex03.descricaoResultado}` : 'Nenhum'}
-              detalhe={candidato ? (ex03 ? `Válido até ${br(ex03.dataValidade)}` : 'Registre pela TR 181 (Tipo-Chave 1)')
+              detalhe={candidato ? (ex03 ? `Válido até ${br(ex03.dataValidade)}` : 'Registre pela TR 181 (Tipo de chave 1)')
                 : ex03Novo ? `Válido até ${br(ex03.dataValidade)} · posterior à última emissão` : 'Anterior à última emissão — registre novo exame (TR 181)'} />
             <Card titulo="Último motivo / transação" valor={`${dc.motivoRequerimento ?? '—'} · TR ${dc.codigoTransacaoUltimaAtualizacao}`}
               detalhe={p.descricoes.motivoRequerimento ?? ''} />
@@ -127,18 +127,18 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
           <div className="grade-secoes">
             <Secao titulo="Identificação">
               <Campos itens={[
-                [candidato ? 'Nome-Candidato-Civil' : 'Nome-Condutor-Civil', d.nomeCondutorCivil],
-                ...(d.nomeSocial ? [['Nome-Social', d.nomeSocial] as [string, string]] : []),
+                [candidato ? 'Nome civil do candidato' : 'Nome civil do condutor', d.nomeCondutorCivil],
+                ...(d.nomeSocial ? [['Nome social', d.nomeSocial] as [string, string]] : []),
                 ['Natureza', candidato ? '1 – Candidato' : '2 – Condutor'],
-                ['Número-Registro', p.numeroRegistro ?? '— (atribuído na emissão, TR 171)'],
+                ['Número de registro', p.numeroRegistro ?? '— (atribuído na emissão, TR 171)'],
                 ['CPF', mascaraCpf(d.cpf)],
-                ['Documento-Identidade', mascaraDoc(d.documentoIdentidade)],
-                ['Data-Nascimento', br(d.dataNascimento)],
+                ['Documento de identidade', mascaraDoc(d.documentoIdentidade)],
+                ['Data de nascimento', br(d.dataNascimento)],
                 ['Sexo', d.sexo === '1' ? '1 – Masculino' : '2 – Feminino'],
-                ['Nome-Mãe', d.nomeMae],
-                ['Nome-Pai', d.nomePai],
+                ['Nome da mãe', d.nomeMae],
+                ['Nome do pai', d.nomePai],
                 ['Nacionalidade', `${d.nacionalidade} – ${catalogos.nacionalidades[d.nacionalidade] ?? ''}`],
-                ['Localidade-Nascimento', `${d.localidadeNascimento} – ${d.localidadeNascimentoDescricao}`],
+                ['Localidade de nascimento', `${d.localidadeNascimento} – ${d.localidadeNascimentoDescricao}`],
               ]} />
             </Secao>
             <Secao titulo="Dados Cadastrais">
@@ -147,21 +147,21 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
                 ['Bairro', d.enderecoBairro],
                 ['Município/UF', `${d.enderecoMunicipio} – ${d.enderecoMunicipioDescricao}/${d.enderecoUf}`],
                 ['CEP', mascaraCep(d.enderecoCep)],
-                ['Data-Cadastramento', br(d.dataCadastramento)],
-                ['Primeira-Habilitação', br(d.primeiraHabilitacao)],
+                ['Data de cadastramento', br(d.dataCadastramento)],
+                ['Primeira habilitação', br(d.primeiraHabilitacao)],
                 ['UF-Domínio', d.ufDominio],
                 ['Celular', d.telefoneCelular ? `(${d.ddd}) •••••${d.telefoneCelular.slice(-4)}` : '—'],
               ]} />
             </Secao>
             <Secao titulo="Dados de Controle">
               <Campos itens={[
-                ['Situação-CNH', sit(dc.situacaoCnh)],
-                ['Situação-CNH-Anterior', sit(dc.situacaoCnhAnterior)],
-                ['Motivo-Requerimento', dc.motivoRequerimento ? `${dc.motivoRequerimento} – ${p.descricoes.motivoRequerimento}` : '—'],
+                ['Situação da CNH', sit(dc.situacaoCnh)],
+                ['Situação anterior da CNH', sit(dc.situacaoCnhAnterior)],
+                ['Motivo do requerimento', dc.motivoRequerimento ? `${dc.motivoRequerimento} – ${p.descricoes.motivoRequerimento}` : '—'],
                 ['Permissionário', { '0': '— (candidato sem CNH)', '1': '1 – Sim', '2': '2 – Não', '3': '3 – Nova Permissão' }[dc.permissionario as '1']],
-                ['Código-Transação-Última-Atualização', dc.codigoTransacaoUltimaAtualizacao],
-                ['Número-Formulário-RENACH', dc.numeroFormularioRenach],
-                ['Número-Formulário-CNH', mascaraDoc(dc.numeroFormularioCnh)],
+                ['Transação da última atualização', dc.codigoTransacaoUltimaAtualizacao],
+                ['Número do formulário RENACH', dc.numeroFormularioRenach],
+                ['Número do formulário da CNH', mascaraDoc(dc.numeroFormularioCnh)],
                 ['Cancelamento', dc.cancelamento === '0' ? '0 – Sem cancelamento' : dc.cancelamento],
                 [candidato ? 'Formulário do candidato (TR 151)' : 'Formulário da renovação (processo atual)', p.formularioRenachEmAndamento],
                 ['Processo estadual (só referência)', p.processoEstadualReferencia ?? '—'],
@@ -169,12 +169,12 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
             </Secao>
             <Secao titulo="CNH">
               <Campos itens={[
-                ['Categoria-Atual', dc.categoriaAtual || (candidato ? '— (em branco até a emissão)' : '—')],
-                ['Categoria-Autorizada', dc.categoriaAutorizada],
-                ['Categoria-Rebaixada', dc.categoriaRebaixada],
-                ['Data-Validade-CNH', br(dc.dataValidadeCnh)],
-                ['Observação-CNH', dc.observacaoCnh.length ? dc.observacaoCnh.map((o: string) => o.trim()).join(', ') : '—'],
-                ['Data-Última-Emissão-Histórico', br(dc.dataUltimaEmissaoHistorico)],
+                ['Categoria atual', dc.categoriaAtual || (candidato ? '— (em branco até a emissão)' : '—')],
+                ['Categoria autorizada', dc.categoriaAutorizada],
+                ['Categoria rebaixada', dc.categoriaRebaixada],
+                ['Validade da CNH', br(dc.dataValidadeCnh)],
+                ['Observação da CNH', dc.observacaoCnh.length ? dc.observacaoCnh.map((o: string) => o.trim()).join(', ') : '—'],
+                ['Data da última emissão', br(dc.dataUltimaEmissaoHistorico)],
               ]} />
               <h4>Histórico de Emissões (HEMI)</h4>
               <Tabela
@@ -191,18 +191,18 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
               )}
             </Secao>
             <Secao titulo="Categorias">
-              <Tabela colunas={['Categoria', 'Data-Início']}
+              <Tabela colunas={['Categoria', 'Data de início']}
                 linhas={Object.entries(dc.datasInicioCategoria).map(([c, dt]) => [c, br(dt as string)])} vazio="Sem categorias." />
             </Secao>
             <Secao titulo="Exame Toxicológico">
               {p.toxicologico.dataColeta ? (
                 <Campos itens={[
-                  ['Data-Coleta-Tox.', br(p.toxicologico.dataColeta)],
-                  ['Data-Validade-Tox. (90 dias)', br(p.toxicologico.dataValidade)],
-                  ['Situação-Exame-Tox.', p.toxicologico.situacao === '1' ? '1 – OK' : '2 – Com pendência'],
+                  ['Coleta do toxicológico', br(p.toxicologico.dataColeta)],
+                  ['Validade do toxicológico (90 dias)', br(p.toxicologico.dataValidade)],
+                  ['Situação do toxicológico', p.toxicologico.situacao === '1' ? '1 – OK' : '2 – Com pendência'],
                   ['CNPJ-Laboratório', ent(p.toxicologico.cnpjLaboratorio)],
-                  ['Número-Laudo', mascaraDoc(p.toxicologico.numeroLaudo)],
-                  ['Prazo-Realização-Toxicológico', br(p.toxicologico.prazoRealizacao)],
+                  ['Número do laudo', mascaraDoc(p.toxicologico.numeroLaudo)],
+                  ['Prazo para o exame toxicológico', br(p.toxicologico.prazoRealizacao)],
                 ]} />
               ) : <p className="muted">Nenhuma coleta registrada.</p>}
             </Secao>

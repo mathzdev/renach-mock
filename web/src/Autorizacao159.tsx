@@ -67,12 +67,12 @@ export function Autorizacao159({ catalogos, prontuario, form, setForm, prevalida
 
       <div className="painel grade-campos">
         <label>
-          <span className="rotulo">Motivo-Requerimento <small className="pos">pos. 060–063</small></span>
+          <span className="rotulo">Motivo do requerimento <small className="pos">pos. 060–063</small></span>
           <select value="5" disabled aria-describedby="ajuda-motivo"><option value="5">5 — Renovação de Exames</option></select>
           <span id="ajuda-motivo" className="ajuda">Único motivo executado nesta etapa da POC.</span>
         </label>
         <label className={cls('numeroFormularioRenach')}>
-          <span className="rotulo">Número-Formulário-RENACH <span className="obrig">*</span><small className="pos">pos. 049–059</small></span>
+          <span className="rotulo">Número do formulário RENACH <span className="obrig">*</span><small className="pos">pos. 049–059</small></span>
           <input value={form.numeroFormularioRenach} maxLength={15} onChange={(e) => setForm({ ...form, numeroFormularioRenach: e.target.value.toUpperCase() })} />
           <span className="ajuda">UF de origem ({catalogos.ufOrigem}) + 9 dígitos, ainda não usado em emissão (003). Não use HAB-...</span>
         </label>
@@ -81,7 +81,7 @@ export function Autorizacao159({ catalogos, prontuario, form, setForm, prevalida
           <select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value })}>
             {catalogos.categorias.map((c: string) => <option key={c}>{c}</option>)}
           </select>
-          <span className="ajuda">No Motivo 5 isolado, igual à Categoria-Atual (982).</span>
+          <span className="ajuda">No Motivo 5 isolado, igual à Categoria atual (982).</span>
         </label>
         <label className={cls('tipoAutorizacao')}>
           <span className="rotulo">Tipo de Autorização <span className="obrig">*</span><small className="pos">pos. 284</small></span>
@@ -114,11 +114,11 @@ export function Autorizacao159({ catalogos, prontuario, form, setForm, prevalida
       {r && (
         <>
           <div className="cards">
-            <Card titulo="Situação-CNH atual" tom={r.situacaoCnh.codigo === '1' ? 'ok' : r.situacaoCnh.codigo === '6' ? 'aviso' : 'neutro'}
+            <Card titulo="Situação da CNH atual" tom={r.situacaoCnh.codigo === '1' ? 'ok' : r.situacaoCnh.codigo === '6' ? 'aviso' : 'neutro'}
               valor={`${r.situacaoCnh.codigo} – ${r.situacaoCnh.descricao}`} detalhe={`Validade da CNH atual: ${br(r.dataValidadeCnhAtual)}`} />
             <Card titulo="Exame 03" tom={r.exame03 && r.dataUltimaEmissao && r.exame03.dataExame > r.dataUltimaEmissao && ['1', '2'].includes(r.exame03.resultado) ? 'ok' : 'erro'}
               valor={r.exame03 ? `${br(r.exame03.dataExame)} · ${r.exame03.descricaoResultado}` : 'Ausente'}
-              detalhe={r.exame03 ? `Data-Validade ${br(r.exame03.dataValidade)} · última emissão ${br(r.dataUltimaEmissao)}` : ''} />
+              detalhe={r.exame03 ? `Data de validade ${br(r.exame03.dataValidade)} · última emissão ${br(r.dataUltimaEmissao)}` : ''} />
             <Card titulo="Pendências" tom={prevalidacao.pendencias.length ? 'erro' : 'ok'} valor={prevalidacao.pendencias.length || 'Nenhuma'}
               detalhe={prevalidacao.pendencias.join(' · ') || 'Requisitos impeditivos atendidos'} />
             <Card titulo="Pré-validação" tom={pode ? 'ok' : 'erro'} valor={pode ? 'Liberada' : 'Bloqueada'}
@@ -129,11 +129,11 @@ export function Autorizacao159({ catalogos, prontuario, form, setForm, prevalida
             <h3>Resumo para revisão</h3>
             <dl className="campos">
               <div><dt>Condutor</dt><dd>{r.condutor}</dd></div>
-              <div><dt>Número-REGISTRO</dt><dd>{r.numeroRegistro}</dd></div>
-              <div><dt>Motivo-Requerimento</dt><dd>5 — Renovação de Exames</dd></div>
+              <div><dt>Número de registro</dt><dd>{r.numeroRegistro}</dd></div>
+              <div><dt>Motivo do requerimento</dt><dd>5 — Renovação de Exames</dd></div>
               <div><dt>Categoria</dt><dd>{r.categoria} (atual {r.categoriaAtual})</dd></div>
               <div><dt>Última emissão não cancelada</dt><dd>{br(r.dataUltimaEmissao)}</dd></div>
-              <div><dt>Data-Validade da nova CNH</dt><dd>{br(r.dataValidadeNovaCnh)}</dd></div>
+              <div><dt>Data de validade da nova CNH</dt><dd>{br(r.dataValidadeNovaCnh)}</dd></div>
               <div><dt>Observações (quadro CNH)</dt><dd><code>{r.observacoesNovaCnh}</code></dd></div>
               <div><dt>Processo estadual</dt><dd>{r.processoEstadualReferencia ?? '—'} <small className="muted">(referência, não é chave RENACH)</small></dd></div>
             </dl>
@@ -179,7 +179,7 @@ export function Autorizacao159({ catalogos, prontuario, form, setForm, prevalida
           <h3>{resultado.autorizado ? 'Aceito na simulação' : 'Rejeitado na simulação'}</h3>
           <p><Retorno retorno={resultado.retorno} /></p>
           {resultado.autorizado
-            ? <p>Situação-CNH demonstrativa: <strong>1 — Emissão Autorizada</strong>. A CNH operacional e o processo estadual não foram alterados.</p>
+            ? <p>Situação da CNH demonstrativa: <strong>1 — Emissão Autorizada</strong>. A CNH operacional e o processo estadual não foram alterados.</p>
             : <p>Nenhuma alteração foi feita no prontuário.</p>}
           <button className="btn" onClick={() => onIr('consulta')}>Ver resultado na Consulta 575</button>
           <Diagnostico diag={resultado.diagnostico} />
