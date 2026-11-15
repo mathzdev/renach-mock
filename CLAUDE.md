@@ -46,7 +46,11 @@ npm start            # build e API servindo web/dist em :3000
 npm test             # testes da API (jest + supertest), DEMO_HOJE=2026-11-14
 npm run typecheck    # tsc da API e do front
 npm run test:e2e     # Playwright: jornada em desktop e 390 px (precisa de `npm start` rodando)
+docker build -t renach-mock .   # imagem única (API serve web/dist) usada no Coolify; ver DEPLOY.md
 ```
+
+Deploy: `Dockerfile` na raiz, porta 3000, healthcheck `/api/saude`, uma réplica (estado em memória). A API escuta em
+`HOST` (padrão `127.0.0.1`; a imagem usa `0.0.0.0`).
 
 Antes de dizer que terminou: `npm run typecheck`, `npm test` e, se mexeu em tela, `npm run test:e2e`
 (verifica overflow em 390 px, erros de console e chamadas externas). Atualize os testes junto com a regra.

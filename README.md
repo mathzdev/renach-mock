@@ -32,6 +32,8 @@ Ou em modo "produção", com a API servindo o front já compilado:
 npm start          # http://localhost:3000
 ```
 
+Deploy (Coolify ou qualquer Docker): veja [DEPLOY.md](DEPLOY.md). `docker build -t renach-mock . && docker run -p 3000:3000 renach-mock`.
+
 Testes:
 
 ```bash

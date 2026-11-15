@@ -18,8 +18,11 @@ async function bootstrap() {
     express.get(/^\/(?!api).*/, (_req: unknown, res: { sendFile: (p: string) => void }) => res.sendFile(join(web, 'index.html')));
   }
 
+  // Local: só 127.0.0.1. Em contêiner (Coolify/Docker) defina HOST=0.0.0.0 para o proxy alcançar a porta.
   const porta = Number(process.env.PORT ?? 3000);
-  await app.listen(porta, '127.0.0.1');
-  console.log(`API RENACH (demonstrativa) em http://localhost:${porta}/api — nenhuma transmissão externa.`);
+  const host = process.env.HOST ?? '127.0.0.1';
+  app.enableShutdownHooks();
+  await app.listen(porta, host);
+  console.log(`API RENACH (demonstrativa) em http://${host}:${porta}/api — nenhuma transmissão externa.`);
 }
 bootstrap();
