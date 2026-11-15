@@ -8,7 +8,7 @@ interface Props {
   resultado: any;
   carregando: boolean;
   onConsultar: (tipoChave: string, numero: string) => void;
-  onIr: (etapa: 'exame' | 'autorizacao') => void;
+  onIr: (etapa: any) => void;
 }
 
 const TIPOS = [
@@ -36,6 +36,7 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
   const ex03 = p?.exames.find((e: any) => e.codigoExame === '03');
   const ultimaEmissao = p?.emissoes.filter((e: any) => !e.cancelada).slice(-1)[0];
   const ex03Novo = ex03 && ultimaEmissao && ex03.dataExame > ultimaEmissao.dataEmissao;
+  const candidato = p?.natureza === '1';
   const sit = (c: string) => `${c} – ${catalogos.situacoesCnh[c] ?? '?'}`;
   const ent = (cnpj?: string | null) => catalogos.entidades.find((x: any) => x.cnpj === cnpj)?.nome ?? (cnpj ? mascaraCnpj(cnpj) : '—');
 
@@ -68,9 +69,9 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
       <div className="atalhos">
         <span className="muted">Massa fictícia:</span>
         {demonstrativos.map((x) => (
-          <button key={x.numeroRegistro} type="button" className="btn btn-pequeno" title={x.cenario}
-            onClick={() => consultar('2', x.numeroRegistro)}>
-            {x.nome.split(' ')[0]} · {x.numeroRegistro} · {x.cenario}
+          <button key={x.chave} type="button" className="btn btn-pequeno" title={x.cenario}
+            onClick={() => consultar(x.tipoChave, x.chave)}>
+            {x.nome.split(' ')[0]} · {x.chave} · {x.cenario}
           </button>
         ))}
         <button type="button" className="btn btn-pequeno btn-fantasma" onClick={() => consultar('2', 'HAB-2026-118342')}>
@@ -94,32 +95,49 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
           <div className="cards">
             <Card titulo="Situação-CNH" tom={dc.situacaoCnh === '1' ? 'ok' : dc.situacaoCnh === '6' ? 'aviso' : 'neutro'}
               valor={sit(dc.situacaoCnh)} detalhe={`Anterior: ${sit(dc.situacaoCnhAnterior)}`} />
-            <Card titulo="Data-Validade-CNH" tom={dc.dataValidadeCnh < new Date().toISOString().slice(0, 10) ? 'aviso' : 'ok'}
-              valor={br(dc.dataValidadeCnh)} detalhe={`Última emissão: ${br(dc.dataUltimaEmissaoHistorico)}`} />
-            <Card titulo="Exame 03 – Aptidão Física e Mental" tom={ex03Novo ? 'ok' : 'aviso'}
+            {candidato ? (
+              <Card titulo="Natureza" tom="neutro" valor="1 – Candidato"
+                detalhe={dc.situacaoCnh === '1' ? `Permissão até ${br(dc.dataValidadeCnh)} · Número-Registro gerado na emissão (TR 171)` : `Cadastrado em ${br(d.dataCadastramento)} · sem Número-Registro`} />
+            ) : (
+              <Card titulo="Data-Validade-CNH" tom={(dc.dataValidadeCnh ?? '') < new Date().toISOString().slice(0, 10) ? 'aviso' : 'ok'}
+                valor={br(dc.dataValidadeCnh)} detalhe={`Última emissão: ${br(dc.dataUltimaEmissaoHistorico)}`} />
+            )}
+            <Card titulo="Exame 03 – Aptidão Física e Mental" tom={candidato ? (ex03 ? 'ok' : 'aviso') : ex03Novo ? 'ok' : 'aviso'}
               valor={ex03 ? `${br(ex03.dataExame)} · ${ex03.descricaoResultado}` : 'Nenhum'}
-              detalhe={ex03Novo ? `Válido até ${br(ex03.dataValidade)} · posterior à última emissão` : 'Anterior à última emissão — registre novo exame (TR 181)'} />
+              detalhe={candidato ? (ex03 ? `Válido até ${br(ex03.dataValidade)}` : 'Registre pela TR 181 (Tipo-Chave 1)')
+                : ex03Novo ? `Válido até ${br(ex03.dataValidade)} · posterior à última emissão` : 'Anterior à última emissão — registre novo exame (TR 181)'} />
             <Card titulo="Último motivo / transação" valor={`${dc.motivoRequerimento ?? '—'} · TR ${dc.codigoTransacaoUltimaAtualizacao}`}
               detalhe={p.descricoes.motivoRequerimento ?? ''} />
           </div>
 
           <div className="acoes-pagina">
-            <button className="btn" onClick={() => onIr('exame')}>Ir para Registrar exame (TR 181) →</button>
-            <button className="btn" onClick={() => onIr('autorizacao')}>Ir para Autorizar emissão (TR 159) →</button>
+            {candidato ? (
+              <>
+                <button className="btn" onClick={() => onIr('eventos')}>Ir para Exames e cursos (TR 181) →</button>
+                <button className="btn" onClick={() => onIr('habilitacao')}>Ir para Habilitar candidato (TR 155) →</button>
+              </>
+            ) : (
+              <>
+                <button className="btn" onClick={() => onIr('exame')}>Ir para Registrar exame (TR 181) →</button>
+                <button className="btn" onClick={() => onIr('autorizacao')}>Ir para Autorizar emissão (TR 159) →</button>
+              </>
+            )}
           </div>
 
           <div className="grade-secoes">
             <Secao titulo="Identificação">
               <Campos itens={[
-                ['Nome-Condutor-Civil', d.nomeCondutorCivil],
-                ['Número-Registro', p.numeroRegistro],
+                [candidato ? 'Nome-Candidato-Civil' : 'Nome-Condutor-Civil', d.nomeCondutorCivil],
+                ...(d.nomeSocial ? [['Nome-Social', d.nomeSocial] as [string, string]] : []),
+                ['Natureza', candidato ? '1 – Candidato' : '2 – Condutor'],
+                ['Número-Registro', p.numeroRegistro ?? '— (atribuído na emissão, TR 171)'],
                 ['CPF', mascaraCpf(d.cpf)],
                 ['Documento-Identidade', mascaraDoc(d.documentoIdentidade)],
                 ['Data-Nascimento', br(d.dataNascimento)],
                 ['Sexo', d.sexo === '1' ? '1 – Masculino' : '2 – Feminino'],
                 ['Nome-Mãe', d.nomeMae],
                 ['Nome-Pai', d.nomePai],
-                ['Nacionalidade', d.nacionalidade === '1' ? '1 – Brasileira' : d.nacionalidade],
+                ['Nacionalidade', `${d.nacionalidade} – ${catalogos.nacionalidades[d.nacionalidade] ?? ''}`],
                 ['Localidade-Nascimento', `${d.localidadeNascimento} – ${d.localidadeNascimentoDescricao}`],
               ]} />
             </Secao>
@@ -140,18 +158,18 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
                 ['Situação-CNH', sit(dc.situacaoCnh)],
                 ['Situação-CNH-Anterior', sit(dc.situacaoCnhAnterior)],
                 ['Motivo-Requerimento', dc.motivoRequerimento ? `${dc.motivoRequerimento} – ${p.descricoes.motivoRequerimento}` : '—'],
-                ['Permissionário', { '1': '1 – Sim', '2': '2 – Não', '3': '3 – Nova Permissão' }[dc.permissionario as '1']],
+                ['Permissionário', { '0': '— (candidato sem CNH)', '1': '1 – Sim', '2': '2 – Não', '3': '3 – Nova Permissão' }[dc.permissionario as '1']],
                 ['Código-Transação-Última-Atualização', dc.codigoTransacaoUltimaAtualizacao],
                 ['Número-Formulário-RENACH', dc.numeroFormularioRenach],
                 ['Número-Formulário-CNH', mascaraDoc(dc.numeroFormularioCnh)],
                 ['Cancelamento', dc.cancelamento === '0' ? '0 – Sem cancelamento' : dc.cancelamento],
-                ['Formulário da renovação (processo atual)', p.formularioRenachEmAndamento],
+                [candidato ? 'Formulário do candidato (TR 151)' : 'Formulário da renovação (processo atual)', p.formularioRenachEmAndamento],
                 ['Processo estadual (só referência)', p.processoEstadualReferencia ?? '—'],
               ]} />
             </Secao>
             <Secao titulo="CNH">
               <Campos itens={[
-                ['Categoria-Atual', dc.categoriaAtual],
+                ['Categoria-Atual', dc.categoriaAtual || (candidato ? '— (em branco até a emissão)' : '—')],
                 ['Categoria-Autorizada', dc.categoriaAutorizada],
                 ['Categoria-Rebaixada', dc.categoriaRebaixada],
                 ['Data-Validade-CNH', br(dc.dataValidadeCnh)],
@@ -166,9 +184,9 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
               />
               {p.autorizacoes.length > 0 && (
                 <>
-                  <h4>Autorizações simuladas (TR 159)</h4>
+                  <h4>Autorizações simuladas (TR {candidato ? '155' : '159'})</h4>
                   <Tabela colunas={['Id', 'Motivo', 'Categoria', 'Validade', 'Formulário']}
-                    linhas={p.autorizacoes.map((a: any) => [a.id, '5 – Renovação de Exames', a.categoria, br(a.dataValidade), a.numeroFormularioRenach])} vazio="" />
+                    linhas={p.autorizacoes.map((a: any) => [a.id, `${a.motivoRequerimento} – ${catalogos.motivosRequerimento[a.motivoRequerimento]}`, a.categoria, br(a.dataValidade), a.numeroFormularioRenach])} vazio="" />
                 </>
               )}
             </Secao>
@@ -198,7 +216,9 @@ export function Consulta575({ catalogos, demonstrativos, resultado, carregando, 
                     e.procedencia === 'SIMULACAO_TR181' ? <Selo tipo="info">Simulação TR 181</Selo> : 'Massa demonstrativa',
                   ] })),
                   ...p.cursos.map((c: any) => ({ data: c.dataFimCurso, linha: [
-                    br(c.dataFimCurso), `C – Curso ${c.codigoCurso} ${c.descricaoCurso}`, '—', br(c.dataValidade), '—', 'Massa demonstrativa',
+                    br(c.dataFimCurso), `C – Curso ${c.codigoCurso} ${c.descricaoCurso}`, c.cargaHoraria ? `${Number(c.cargaHoraria)} ${c.codigoCurso === '34' ? 'min' : 'h'}` : '—',
+                    br(c.dataValidade), c.categoria || '—',
+                    c.procedencia === 'SIMULACAO_TR181' ? <Selo tipo="info">Simulação TR 181</Selo> : 'Massa demonstrativa',
                   ] })),
                 ].sort((a, b) => a.data.localeCompare(b.data)).map((x) => x.linha)}
                 vazio="Sem eventos."

@@ -36,4 +36,7 @@ export const api = {
   registrar181: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/181', payload),
   prevalidar159: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/159/prevalidar', payload),
   autorizar159: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/159', payload),
+  cadastrar151: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/151', payload),
+  prevalidar155: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/155/prevalidar', payload),
+  habilitar155: (payload: Record<string, unknown>) => chamar<any>('POST', '/api/renach/155', payload),
 };

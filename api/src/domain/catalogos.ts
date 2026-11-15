@@ -42,6 +42,37 @@ export const CURSOS: Record<string, string> = {
   '31': 'Aulas Teóricas – Legislação',
   '32': 'Aulas Práticas 04 Rodas',
   '33': 'Aulas Práticas 02 Rodas',
+  '34': 'Simulador de Direção Veicular',
+};
+
+/** Categorias aceitas para CANDIDATO não PGU e não estrangeiro (TR 181, Consistência III.1; quadro do Motivo 1 da 155). */
+export const CATEGORIAS_CANDIDATO = ['A', 'B', 'AB', 'X', 'XB'];
+
+/** Campos pré-codificados — MODALIDADE-CURSO. */
+export const MODALIDADES_CURSO: Record<string, string> = {
+  '1': 'Presencial (integral)',
+  '2': 'Ensino a distância / autodidata',
+  '3': 'Aproveitamento de estudos (comprovado)',
+  '4': 'Presencial (parcial) com EAD/autodidata e/ou aproveitamento',
+  '5': 'EAD/autodidata com aproveitamento de estudos',
+};
+/** TR 181 Evento C, Observação 1: Modalidade obrigatória nesses cursos (nos 31–34 não se aplica). */
+export const CURSOS_COM_MODALIDADE = ['01', '02', '03', '04', '07', '11', '12', '13', '14', '17', '20', '30'];
+
+/** Campos pré-codificados — NACIONALIDADE. */
+export const NACIONALIDADES: Record<string, string> = {
+  '1': 'Brasileiro',
+  '2': 'Brasileiro naturalizado',
+  '3': 'Estrangeiro',
+  '4': 'Brasileiro nascido no exterior',
+};
+
+/** Campos pré-codificados — TIPO-DOCUMENTO-IDENTIDADE. */
+export const TIPOS_DOCUMENTO_IDENTIDADE: Record<string, string> = {
+  '1': 'Carteira de Identidade',
+  '2': 'Carteira Profissional',
+  '3': 'Passaporte',
+  '4': 'Carteira de Reservista',
 };
 
 /** Tabelas 05 a 08 — o domínio do Resultado depende do exame. */
@@ -105,7 +136,7 @@ export const OBSERVACOES_EXAME: Record<string, string> = {
 /** Observações que não são impressas na CNH (não entram em Observação-CNH). */
 export const OBS_NAO_IMPRESSAS = ['40', '43', '44', '45', '46', '47', '51', '99'];
 
-/** Campos pré-codificados — MOTIVO-REQUERIMENTO (exibido; a POC só executa o 5). */
+/** Campos pré-codificados — MOTIVO-REQUERIMENTO (exibido; a POC executa o 5 na TR 159 e o 1 na TR 155). */
 export const MOTIVOS_REQUERIMENTO: Record<string, string> = {
   '1': 'Primeira Habilitação',
   '2': '2ª Via',
@@ -146,7 +177,7 @@ export const MUNICIPIOS: Record<string, { nome: string; uf: string }> = {
 export interface EntidadeCredenciada {
   cnpj: string;
   nome: string;
-  tipo: 'CLINICA' | 'LABORATORIO' | 'CENTRO_FORMACAO';
+  tipo: 'CLINICA' | 'LABORATORIO' | 'CFC' | 'DETRAN_EXAMES';
   municipio: string;
   uf: string;
 }
@@ -154,7 +185,7 @@ export interface EntidadeCredenciada {
 export interface Profissional {
   cpf: string;
   nome: string;
-  funcao: '08 – Médico' | '09 – Psicólogo';
+  funcao: 'Médico' | 'Psicólogo' | 'Instrutor de Trânsito' | 'Examinador de Trânsito';
   entidade: string; // CNPJ da entidade com vínculo ativo
 }
 
@@ -162,13 +193,36 @@ export const ENTIDADES: EntidadeCredenciada[] = [
   { cnpj: '99000000000159', nome: 'Clínica Demonstrativa Horizonte (POC)', tipo: 'CLINICA', municipio: '07107', uf: 'SP' },
   { cnpj: '99000001000101', nome: 'Clínica Demonstrativa Aurora (POC)', tipo: 'CLINICA', municipio: '06291', uf: 'SP' },
   { cnpj: '99000002000148', nome: 'Laboratório Demonstrativo Vértice (POC)', tipo: 'LABORATORIO', municipio: '07107', uf: 'SP' },
+  { cnpj: '99000003000192', nome: 'CFC Demonstrativo Rota Certa (POC)', tipo: 'CFC', municipio: '07107', uf: 'SP' },
+  { cnpj: '99000004000137', nome: 'Banca Examinadora Demonstrativa (POC)', tipo: 'DETRAN_EXAMES', municipio: '07107', uf: 'SP' },
 ];
 
 export const PROFISSIONAIS: Profissional[] = [
-  { cpf: '90000000175', nome: 'Dra. Helena Prado Siqueira (fictícia)', funcao: '08 – Médico', entidade: '99000000000159' },
-  { cpf: '90000000256', nome: 'Dr. Otávio Nunes Barreto (fictício)', funcao: '09 – Psicólogo', entidade: '99000000000159' },
-  { cpf: '90000000337', nome: 'Dra. Lívia Andrade Rocha (fictícia)', funcao: '08 – Médico', entidade: '99000001000101' },
+  { cpf: '90000000175', nome: 'Dra. Helena Prado Siqueira (fictícia)', funcao: 'Médico', entidade: '99000000000159' },
+  { cpf: '90000000256', nome: 'Dr. Otávio Nunes Barreto (fictício)', funcao: 'Psicólogo', entidade: '99000000000159' },
+  { cpf: '90000000337', nome: 'Dra. Lívia Andrade Rocha (fictícia)', funcao: 'Médico', entidade: '99000001000101' },
+  { cpf: '90000000418', nome: 'Instr. Caio Ferraz Lemos (fictício)', funcao: 'Instrutor de Trânsito', entidade: '99000003000192' },
+  { cpf: '90000000507', nome: 'Exam. Renata Sales Moura (fictícia)', funcao: 'Examinador de Trânsito', entidade: '99000004000137' },
 ];
+
+/**
+ * Compatibilidade evento x profissional x entidade (TR 185, quadro TIPO-PROFISSIONAL x TIPO-ENTIDADE;
+ * TR 181, retorno 662). Exame 03: médico em clínica; 04: psicólogo em clínica; 01/02: examinador de
+ * trânsito em entidade de exames do DETRAN; 05/06/07: entidade de exames do DETRAN; cursos: CFC e instrutor.
+ */
+export function eventoCompativel(evento: string, ent?: EntidadeCredenciada, prof?: Profissional): string | null {
+  const exige = (tipos: EntidadeCredenciada['tipo'][], funcao?: Profissional['funcao']) => {
+    if (ent && !tipos.includes(ent.tipo)) return `${ent.nome} não realiza este evento.`;
+    if (funcao && prof && prof.funcao !== funcao) return `${prof.nome} (${prof.funcao}) não pode registrar este evento; exige ${funcao}.`;
+    return null;
+  };
+  if (evento === 'E03') return exige(['CLINICA'], 'Médico');
+  if (evento === 'E04') return exige(['CLINICA'], 'Psicólogo');
+  if (evento === 'E01' || evento === 'E02') return exige(['DETRAN_EXAMES'], 'Examinador de Trânsito');
+  if (/^E0[567]$/.test(evento)) return exige(['DETRAN_EXAMES'], 'Examinador de Trânsito');
+  if (evento.startsWith('C')) return exige(['CFC'], 'Instrutor de Trânsito');
+  return null;
+}
 
 /**
  * TR 181, Consistência VII: validade máxima dos exames 03 e 04 realizados a
@@ -211,6 +265,62 @@ export function cnpjValido(v: string): boolean {
 
 /** Mensagens oficiais dos códigos de retorno usados pela POC (TR 575, 181 e 159). */
 const MSG: Record<string, string> = {
+  // TR 151, 155 e Evento C da 181 (primeira habilitação)
+  '004': 'Nome e Documento de Identidade cadastrado.',
+  '009': 'Transação indevida para Natureza do Registro.',
+  '010': 'Candidato com Bloqueio.',
+  '015': 'Candidato já habilitado.',
+  '073': 'Nome, Data de Nascimento e Nome da Mãe cadastrado na BINCO (inexistência de Autorização Especial de Duplicidade da SENATRAN).',
+  '222': 'Modalidade do curso fora da tabela ou ausente ou não se aplica ao curso.',
+  '300': 'Nome da Mãe em Branco – Confirme.',
+  '301': 'Nome do Pai Inválido.',
+  '302': 'Endereço Logradouro inválido ou ausente.',
+  '304': 'Endereço Bairro inválido ou ausente.',
+  '305': 'Endereço CEP inválido ou ausente.',
+  '306': 'Endereço Município fora da tabela ou ausente.',
+  '307': 'Endereço UF fora da tabela ou ausente.',
+  '308': 'Endereço Município não pertence a Endereço UF informada.',
+  '311': 'Condutor menor de 18 anos.',
+  '316': 'Para o Motivo de Requerimento 1 – Primeira Habilitação, o Curso 31 – Aulas Teóricas – Legislação deve estar registrado no Prontuário do candidato.',
+  '321': 'Exame 03 – Aptidão Física e Mental deve estar registrado no Prontuário do candidato com validade vigente.',
+  '322': 'Para o Motivo de Requerimento 1 – Primeira Habilitação, o Exame 04 – Avaliação Psicológica deve estar registrado no Prontuário do candidato com validade vigente.',
+  '323': 'Para o Motivo de Requerimento 1 – Primeira Habilitação, o Exame 05 – Teórico Técnico de Formação deve estar registrado no Prontuário do candidato.',
+  '348': 'O Motivo de Requerimento 1 – Primeira Habilitação, não pode estar acompanhado de outro motivo.',
+  '350': 'Motivo de Requerimento indevido para a transação.',
+  '369': 'Motivo de Requerimento 1 – Primeira Habilitação Não é Aceito Pela Transação 159.',
+  '382': 'Para o Curso 33 – Aulas Práticas 2 Rodas as Categorias Possíveis são: X e A.',
+  '383': 'Para o Curso 32 – Aulas Práticas 4 Rodas as Categorias Possíveis são: B, C, D e E.',
+  '390': 'O campo modalidade é obrigatório para este curso.',
+  '391': 'A carga horária é obrigatório para este curso.',
+  '394': 'Categoria é obrigatório para este curso.',
+  '396': 'Código do curso fora da tabela ou ausente.',
+  '397': 'Data início curso inválida.',
+  '398': 'Data fim curso inválida.',
+  '400': 'CPF instrutor inválido ou ausente.',
+  '472': 'Carga-horária Inválida.',
+  '479': 'Número-Certificado Inválido.',
+  '486': 'Categoria não compatível com o Motivo de Requerimento.',
+  '524': 'Inexistência de Curso/Exame Prático no Prontuário do Candidato/Condutor.',
+  '529': 'Para o Motivo Requerimento: 1 – Primeira Habilitação a Data de Primeira Habilitação deve ser igual à data da transação.',
+  '590': 'Curso 34 - Simulador de Direção Veicular não consta no Prontuário do Candidato.',
+  '592': 'Inexistência de evento pré-requisito para inclusão do Curso 34 – Simulador de Direção Veículo.',
+  '593': 'Carga horária insuficiente para o Curso/Exame.',
+  '594': 'Candidato não solicitou/autorizado para categoria B.',
+  '662': 'Evento não compatível com a Entidade/Profissional.',
+  '761': 'Número do CPF já pertence a Candidato ou Condutor cadastrado na BCA.',
+  '763': 'Processo Vencido – Excedido o período de um ano entre data da primeira habilitação e data de cadastramento.',
+  '805': 'Nome do cidadão, candidato ou do condutor inválido ou ausente.',
+  '809': 'Data de Nascimento inválida ou ausente.',
+  '810': 'Data de Cadastramento inválida ou maior que a Data Atual.',
+  '812': 'Sexo inválido ou ausente.',
+  '814': 'Nome da Mãe inválido.',
+  '818': 'Tipo do Documento de Identidade inválido.',
+  '819': 'Número do Documento de Identidade inválido ou ausente.',
+  '832': 'Localidade de Nascimento (País ou Município) fora da tabela ou ausente.',
+  '835': 'Nacionalidade fora da tabela ou ausente.',
+  '971': 'Nome Social Inválido.',
+  '972': 'Filiação-afetiva Inválida.',
+
   '000': 'Transação Efetuada.',
   '002': 'Campos Obrigatórios Ausentes.',
   '003': 'Duplicata de Número Formulário RENACH.',

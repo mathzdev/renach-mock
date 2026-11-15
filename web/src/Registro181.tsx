@@ -10,13 +10,17 @@ function hojeLocal() {
 }
 
 export function form181Inicial(p: any): Form181 {
-  const tem03 = !!p?.exames?.some((e: any) => e.codigoExame === '03');
+  const candidato = p?.natureza === '1';
+  const tem = (c: string) => !!p?.exames?.some((e: any) => e.codigoExame === c);
+  // Candidato: começa pelo primeiro exame que falta na ordem do processo (03, 04, 05, 02)
+  const codigo = candidato ? (['03', '04', '05', '02'].find((c) => !tem(c)) ?? '02') : '03';
+  const categoria = candidato ? (p?.exames?.find((e: any) => e.codigoExame === '03')?.categoriaPretendida || 'B') : p?.dadosControle?.categoriaAtual ?? '';
   return {
-    tipoChave: '2',
-    numero: p?.numeroRegistro ?? '',
+    tipoChave: candidato ? '1' : '2',
+    numero: candidato ? p.formularioRenachEmAndamento : p?.numeroRegistro ?? '',
     tipoEvento: 'E',
-    tipoAtualizacao: tem03 ? 'S' : 'I',
-    codigoExame: '03',
+    tipoAtualizacao: tem(codigo) ? 'S' : 'I',
+    codigoExame: codigo,
     dataExame: hojeLocal(),
     resultado: '',
     dataValidade: '',
@@ -25,8 +29,8 @@ export function form181Inicial(p: any): Form181 {
     cnpjEntidadeCredenciada: '',
     municipioExame: '07107',
     ufExame: 'SP',
-    categoriaPretendida: p?.dadosControle?.categoriaAtual ?? '',
-    categoriaPermitida: p?.dadosControle?.categoriaAtual ?? '',
+    categoriaPretendida: categoria,
+    categoriaPermitida: categoria,
     observacoes: ['99'],
     restricoesXTexto: '',
     cnpjLaboratorio: '',
@@ -69,12 +73,16 @@ interface Props {
   enviando: boolean;
   onEnviar: () => void;
   onLimpar: () => void;
-  onIr: (etapa: 'consulta' | 'autorizacao') => void;
+  onIr: (etapa: any) => void;
+  /** Próxima etapa sugerida após o aceite (renovação: TR 159; primeira habilitação: TR 155). */
+  proximo?: { rotulo: string; etapa: string };
+  /** Dentro da tela de Eventos da primeira habilitação: sem cabeçalho próprio. */
+  embutido?: boolean;
 }
 
 const GRUPOS = ['Condutor/Prontuário', 'Dados do Exame', 'Resultado', 'Profissional', 'Entidade Credenciada', 'Categoria', 'Observações e Restrições'];
 
-export function Registro181({ catalogos, prontuario, form, setForm, resultado, enviando, onEnviar, onLimpar, onIr }: Props) {
+export function Registro181({ catalogos, prontuario, form, setForm, resultado, enviando, onEnviar, onLimpar, onIr, proximo, embutido }: Props) {
   const [tentou, setTentou] = useState(false);
   const [confirmar, setConfirmar] = useState(false);
   const campos: any[] = catalogos.camposTr181;
@@ -107,7 +115,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
     return (
       <section className="painel">
         <h2>Registro de exame — TR 181</h2>
-        <p>Consulte um prontuário na TR 575 antes de registrar o exame.</p>
+        <p>Consulte um prontuário na TR 575 (ou cadastre um candidato na TR 151) antes de registrar o exame.</p>
         <button className="btn btn-primario" onClick={() => onIr('consulta')}>Ir para a Consulta 575</button>
       </section>
     );
@@ -180,7 +188,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
       campo('resultado', (
         <select value={form.resultado} onChange={(e) => {
           const r = e.target.value;
-          setForm({ ...form, resultado: r, categoriaPermitida: inaptoDe(form.codigoExame, r) ? '' : form.categoriaPermitida || prontuario.dadosControle.categoriaAtual });
+          setForm({ ...form, resultado: r, categoriaPermitida: inaptoDe(form.codigoExame, r) ? '' : form.categoriaPermitida || form.categoriaPretendida || prontuario.dadosControle.categoriaAtual });
         }}>
           <option value="">Selecione…</option>
           {Object.entries(resultados).map(([k, v]) => <option key={k} value={k}>{k} — {v}</option>)}
@@ -260,12 +268,14 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
 
   return (
     <section aria-labelledby="t181">
-      <header className="pagina-topo">
-        <div>
-          <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo-Evento E (Exame)</p>
-          <h2 id="t181">Registro de exame</h2>
-        </div>
-      </header>
+      {embutido ? <h3 id="t181" className="sr-only">Registro de exame</h3> : (
+        <header className="pagina-topo">
+          <div>
+            <p className="trilha">RENACH › Eventos › TR 181 – Eventos · Tipo-Evento E (Exame)</p>
+            <h2 id="t181">Registro de exame</h2>
+          </div>
+        </header>
+      )}
 
       <p className="nota">
         Leiaute do Manual RENACH v8.2 <FonteSelo fonte="MANUAL" />: identificação (Tipo-Chave e Número) e os 16 atributos do Evento E, nas posições 051 a 273.
@@ -302,7 +312,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
               </p>
               <div className="acoes">
                 <button className="btn" onClick={() => onIr('consulta')}>Conferir na Consulta 575</button>
-                <button className="btn btn-primario" onClick={() => onIr('autorizacao')}>Seguir para Autorização (TR 159) →</button>
+                <button className="btn btn-primario" onClick={() => onIr(proximo?.etapa ?? 'autorizacao')}>{proximo?.rotulo ?? 'Seguir para Autorização (TR 159) →'}</button>
               </div>
             </>
           ) : <p>Nenhuma alteração foi feita no prontuário. Campos relacionados estão destacados.</p>}
@@ -321,7 +331,7 @@ export function Registro181({ catalogos, prontuario, form, setForm, resultado, e
       <Confirmacao aberto={confirmar} titulo="Registrar exame (simulação)?" rotuloConfirmar="Registrar exame (simulação)"
         onCancelar={() => setConfirmar(false)} onConfirmar={() => { setConfirmar(false); onEnviar(); }}>
         <ul className="resumo-confirmacao">
-          <li>Condutor: <strong>{prontuario.dadosCadastrais.nomeCondutorCivil}</strong></li>
+          <li>{prontuario.natureza === '1' ? 'Candidato' : 'Condutor'}: <strong>{prontuario.dadosCadastrais.nomeCondutorCivil}</strong></li>
           <li>{form.tipoAtualizacao === 'S' ? 'Substituição' : 'Inclusão'} do Exame {form.codigoExame} em {br(form.dataExame)} — resultado {form.resultado} ({resultados[form.resultado]})</li>
           {form.dataValidade && <li>Data-Validade: {br(form.dataValidade)}</li>}
           <li>Examinador: {prof?.nome ?? '—'} · Entidade: {ent?.nome ?? '—'}</li>

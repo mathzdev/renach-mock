@@ -1,38 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DemoStoreService } from '../demo/demo-store.service';
 import {
-  CATEGORIAS, CURSOS, ENTIDADES, EXAMES, MOTIVOS_REQUERIMENTO, MUNICIPIOS, OBSERVACOES_EXAME, OBS_NAO_IMPRESSAS,
+  CATEGORIAS, CATEGORIAS_CANDIDATO, CURSOS, ENTIDADES, EXAMES, MOTIVOS_REQUERIMENTO, MUNICIPIOS, OBSERVACOES_EXAME, OBS_NAO_IMPRESSAS,
   PROFISSIONAIS, RESTRICOES_MEDICAS, RESULTADOS_POR_EXAME, TIPOS_CHAVE, UFS, UF_ORIGEM_DEMO,
-  cnpjValido, digitosCpfValidos, nivelCategoria, ret, retPoc, resultadoApto, temDuasRodas, validadeMaximaAnos,
+  cnpjValido, digitosCpfValidos, eventoCompativel, nivelCategoria, ret, retPoc, resultadoApto, temDuasRodas, validadeMaximaAnos,
 } from '../domain/catalogos';
 import { br, dataValida, hojeIso, idadeEm, somarAnos } from '../domain/datas';
 import { LEIAUTE_159, LEIAUTE_575 } from '../domain/leiautes';
 import { CAMPOS_TR181 } from '../domain/tr181.campos';
-import { EventoExame, Fonte, Prontuario, Retorno, SITUACOES_CNH, Validacao } from '../domain/tipos';
-
-const AVISO_TRANSMISSAO = 'NENHUMA TRANSMISSÃO REALIZADA — processamento local, em memória, com dados fictícios.';
-const ORIGEM_DESTINO = 'DETRAN → BCA (Manual RENACH v8.2, quadro de transações). Na POC: navegador → API local.';
-const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
-
-/** Monta uma validação a partir de uma condição. */
-function regra(
-  id: string, titulo: string, ok: boolean, detalheOk: string, detalheFalha: string,
-  opts: { codigo?: Retorno; campos?: string[]; fonte?: Fonte; referencia?: string; impeditivo?: boolean } = {},
-): Validacao {
-  return {
-    id,
-    titulo,
-    status: ok ? 'ATENDIDO' : 'NAO_ATENDIDO',
-    impeditivo: opts.impeditivo ?? true,
-    detalhe: ok ? detalheOk : detalheFalha,
-    fonte: opts.fonte ?? 'MANUAL',
-    referencia: opts.referencia,
-    campos: opts.campos,
-    codigoRetorno: ok ? undefined : opts.codigo,
-  };
-}
-
-const primeiraFalha = (v: Validacao[]) => v.find((x) => x.impeditivo && x.status === 'NAO_ATENDIDO');
+import { EventoExame, Prontuario, Retorno, SITUACOES_CNH, Validacao } from '../domain/tipos';
+import { AVISO_TRANSMISSAO, ORIGEM_DESTINO, clone, primeiraFalha, regra } from './comum';
 
 @Injectable()
 export class RenachService {
@@ -105,8 +82,14 @@ export class RenachService {
       val.push(regra('K1', 'UF do formulário na tabela', false, '', `UF "${uf}" fora da Tabela 01.`, { codigo: ret('801') }));
       return fim(ret('801'));
     }
-    const dono = lista.find((x) => x.formularioRenachEmAndamento === numero || x.dadosControle.numeroFormularioRenach === numero ||
-      x.emissoes.some((e) => e.numeroFormularioRenach === numero));
+    const candidato = lista.find((x) => x.natureza === '1' && x.formularioRenachEmAndamento === numero);
+    if (candidato) {
+      p = candidato;
+      val.push(regra('K2', 'Formulário de candidato existe na base', true, 'Candidato localizado pelo Número-Formulário-RENACH (Natureza 1 – Candidato).', ''));
+      return fim(ret('000'));
+    }
+    const dono = lista.find((x) => x.natureza === '2' && (x.formularioRenachEmAndamento === numero || x.dadosControle.numeroFormularioRenach === numero ||
+      x.emissoes.some((e) => e.numeroFormularioRenach === numero)));
     if (dono) {
       val.push(regra('K2', 'Chave por formulário só para candidato', false, '',
         'O formulário pertence a um condutor (já habilitado). Para condutor, a 575 só aceita Número-Registro ou CPF.', { codigo: ret('375') }));
@@ -118,6 +101,9 @@ export class RenachService {
 
   listarDemonstrativos(sessao: string) {
     return this.store.obter(sessao).prontuarios.map((p) => ({
+      natureza: p.natureza,
+      tipoChave: p.natureza === '1' ? '1' : '2',
+      chave: p.natureza === '1' ? p.formularioRenachEmAndamento : p.numeroRegistro,
       numeroRegistro: p.numeroRegistro,
       nome: p.dadosCadastrais.nomeCondutorCivil,
       cpf: p.dadosCadastrais.cpf,
@@ -125,9 +111,10 @@ export class RenachService {
       formularioRenachEmAndamento: p.formularioRenachEmAndamento,
       processoEstadualReferencia: p.processoEstadualReferencia ?? null,
       cenario:
-        p.numeroRegistro === '90011834250' ? 'Renovação comum (cenário principal)'
-          : p.numeroRegistro === '90020250096' ? 'CNH vencida há mais de 5 anos, 1ª habilitação antes de 1998'
-            : 'Condutor com bloqueio ativo',
+        p.natureza === '1' ? (p.dadosControle.situacaoCnh === '1' ? 'Candidato habilitado (TR 155)' : 'Candidato em primeira habilitação')
+          : p.numeroRegistro === '90011834250' ? 'Renovação comum (cenário principal)'
+            : p.numeroRegistro === '90020250096' ? 'CNH vencida há mais de 5 anos, 1ª habilitação antes de 1998'
+              : 'Condutor com bloqueio ativo',
     }));
   }
 
@@ -135,7 +122,8 @@ export class RenachService {
   registrar181(sessao: string, payload: Record<string, any>) {
     const e = this.normalizar181(payload ?? {});
     const lista = this.store.obter(sessao).prontuarios;
-    const p = e.tipoChave === '2' ? lista.find((x) => x.numeroRegistro === e.numero) : undefined;
+    const p = e.tipoChave === '2' ? lista.find((x) => x.natureza === '2' && x.numeroRegistro === e.numero)
+      : e.tipoChave === '1' ? lista.find((x) => x.natureza === '1' && x.formularioRenachEmAndamento === e.numero) : undefined;
     const val = this.validar181(e, p, lista);
     const falha = primeiraFalha(val);
     const antes = p ? { situacaoCnh: p.dadosControle.situacaoCnh, exame: clone(p.exames.find((x) => x.codigoExame === e.codigoExame) ?? null) } : null;
@@ -154,14 +142,15 @@ export class RenachService {
       interpretacoes: [
         'Resultado 2 (Apto com Restrições) sem nenhuma restrição médica nas Observações é recusado (o Manual exige o inverso, mas não traz código para este caso).',
         'Restrições médicas (A–Z) com resultado Inapto/Inapto Temporário são recusadas (o Manual diz que o resultado "deverá ser apto com restrições").',
-        'Nos exames 03 e 04, "categoria total" é tratada como Categoria-Pretendida igual à Categoria-Atual do prontuário (retorno 346 quando diferente).',
+        'Nos exames 03 e 04 do condutor, "categoria total" é tratada como Categoria-Pretendida igual à Categoria-Atual do prontuário (retorno 346 quando diferente).',
+        'Candidato: categoria fora de A, B, AB, X ou XB (Consistência III.1) retorna 345; evento com a CNH já autorizada (Situação-CNH 1) retorna 017.',
         'Exame 03 com resultado 5 (Inapto) dispensa Data-Validade.',
         'Mudança da Situação-CNH para 6 – Alterada quando o exame muda a validade ou as observações impressas da CNH (Observação do Retorno da 181).',
       ],
     };
 
     if (falha || !p) {
-      const retorno = falha?.codigoRetorno ?? ret('016');
+      const retorno = falha?.codigoRetorno ?? ret(e.tipoChave === '1' ? '006' : '016');
       return {
         aceito: false, retorno, validacoes: val,
         camposComErro: [...new Set(val.filter((v) => v.status === 'NAO_ATENDIDO').flatMap((v) => v.campos ?? []))],
@@ -198,7 +187,7 @@ export class RenachService {
     // Situação-CNH (Observação do Leiaute Retorno da 181)
     const dc = p.dadosControle;
     const sitAntes = dc.situacaoCnh;
-    if (['03', '04'].includes(e.codigoExame)) {
+    if (p.natureza === '2' && ['03', '04'].includes(e.codigoExame)) {
       const alteraCnh = this.dadosImpressosDivergem(p);
       if (alteraCnh && (sitAntes === '4' || sitAntes === '5')) {
         dc.situacaoCnhAnterior = sitAntes;
@@ -267,23 +256,38 @@ export class RenachService {
       v.push({ ...regra(id, titulo, ok, okMsg, falhaMsg, { codigo, campos, referencia: `TR 181 · cód. ${codigo.codigo}` }), ...extra });
     const hoje = hojeIso();
 
-    // Identificação do condutor
+    // Identificação do condutor/candidato
     if (e.tipoChave === '1') {
-      const existe = lista.some((x) => x.formularioRenachEmAndamento === e.numero || x.emissoes.some((m) => m.numeroFormularioRenach === e.numero));
-      R('I01', 'Tipo-Chave compatível com condutor', false, '', existe
-        ? 'Tipo-Chave 1 (Formulário RENACH) só é aceito para candidato; para condutor use Tipo-Chave 2 – Número-Registro.'
-        : 'Formulário RENACH não encontrado na base.', existe ? ret('375') : ret('006'), ['tipoChave', 'numero']);
-      return v;
+      const f = e.numero;
+      if (!/^[A-Z]{2}\d{9}$/.test(f) || /^[A-Z]{2}0{9}$/.test(f)) {
+        R('I01', 'Número-Formulário-RENACH válido', false, '', 'Formato: UF (2) + identificação numérica diferente de zeros.', ret('802'), ['numero']);
+        return v;
+      }
+      if (!UFS.includes(f.slice(0, 2))) { R('I01', 'UF do formulário na tabela', false, '', `UF "${f.slice(0, 2)}" fora da Tabela 01.`, ret('801'), ['numero']); return v; }
+      if (!p) {
+        const deCondutor = lista.some((x) => x.natureza === '2' && (x.formularioRenachEmAndamento === f || x.emissoes.some((m) => m.numeroFormularioRenach === f)));
+        R('I01', 'Tipo-Chave compatível com a natureza', false, '', deCondutor
+          ? 'Tipo-Chave 1 (Formulário RENACH) só é aceito para candidato; para condutor use Tipo-Chave 2 – Número-Registro.'
+          : 'Formulário RENACH não encontrado na base.', deCondutor ? ret('375') : ret('006'), ['tipoChave', 'numero']);
+        return v;
+      }
+      R('I01', 'Candidato identificado pelo Formulário RENACH', true, `Natureza 1 – Candidato, formulário ${f}.`, '', ret('006'), ['numero']);
+    } else {
+      R('I01', 'Tipo-Chave 2 – Número-Registro', e.tipoChave === '2', 'Condutor identificado por Número-Registro.', 'Tipo-Chave inválido.', ret('890'), ['tipoChave']);
+      if (e.tipoChave !== '2') return v;
+      R('I02', 'Número-Registro válido', digitosCpfValidos(e.numero), 'Número-Registro com dígitos verificadores corretos.',
+        /^HAB/.test(e.numero) ? 'HAB-... é o processo estadual, não Número-Registro.' : 'Número-Registro inválido (mesmas críticas do CPF).', ret('752'), ['numero']);
+      if (!digitosCpfValidos(e.numero)) return v;
+      R('I03', 'Número-Registro existe na base', !!p, 'Prontuário localizado.', 'Número-Registro não encontrado.', ret('016'), ['numero']);
+      if (!p) return v;
     }
-    R('I01', 'Tipo-Chave 2 – Número-Registro', e.tipoChave === '2', 'Condutor identificado por Número-Registro.', 'Tipo-Chave inválido.', ret('890'), ['tipoChave']);
-    if (e.tipoChave !== '2') return v;
-    R('I02', 'Número-Registro válido', digitosCpfValidos(e.numero), 'Número-Registro com dígitos verificadores corretos.',
-      /^HAB/.test(e.numero) ? 'HAB-... é o processo estadual, não Número-Registro.' : 'Número-Registro inválido (mesmas críticas do CPF).', ret('752'), ['numero']);
-    if (!digitosCpfValidos(e.numero)) return v;
-    R('I03', 'Número-Registro existe na base', !!p, 'Prontuário localizado.', 'Número-Registro não encontrado.', ret('016'), ['numero']);
-    if (!p) return v;
     R('I04', 'UF de origem igual à UF de domínio', p.dadosCadastrais.ufDominio === UF_ORIGEM_DEMO,
-      `UF de origem (${UF_ORIGEM_DEMO}) = UF de domínio.`, `UF de domínio do condutor é ${p.dadosCadastrais.ufDominio}.`, ret('011'), ['numero']);
+      `UF de origem (${UF_ORIGEM_DEMO}) = UF de domínio.`, `UF de domínio é ${p.dadosCadastrais.ufDominio}.`, ret('011'), ['numero']);
+    if (p.natureza === '1') {
+      v.push(regra('I07', 'Candidato sem emissão autorizada', p.dadosControle.situacaoCnh === '0', 'Situação-CNH 0 – Inexistente: eventos aceitos.',
+        'A habilitação já foi autorizada (TR 155). Alterar eventos exigiria cancelar a autorização (TR 176) antes.',
+        { codigo: ret('017'), fonte: 'INTERPRETACAO_POC', referencia: 'TR 181 · Consistência V.1 (pertinência com a 155)', campos: ['numero'] }));
+    }
     R('I05', 'Tipo-Evento', e.tipoEvento === 'E', 'E – Exame.', 'Tipo-Evento inválido ou ausente.', ret('376'), ['tipoEvento']);
     R('I06', 'Tipo-Atualização', ['I', 'S'].includes(e.tipoAtualizacao), e.tipoAtualizacao === 'I' ? 'I – Inclusão.' : 'S – Substituição.',
       'Tipo-Atualização inválido ou ausente (POC aceita I ou S).', ret('377'), ['tipoAtualizacao']);
@@ -343,6 +347,11 @@ export class RenachService {
         R('P05', 'Vínculo do profissional com a entidade', prof.entidade === ent!.cnpj, 'Vínculo ativo.',
           `${prof.nome} não tem vínculo com ${ent!.nome}.`, ret('639'), ['cpfExaminador1', 'cnpjEntidadeCredenciada']);
       }
+      if (existe) {
+        const inc = eventoCompativel(`E${e.codigoExame}`, ent, prof);
+        R('P06', 'Exame compatível com a entidade e o profissional', !inc, 'Tipo de entidade e função do profissional compatíveis com o exame.',
+          inc ?? '', ret('662'), ['cnpjEntidadeCredenciada', 'cpfExaminador1'], { referencia: 'TR 185 · quadro Tipo-Profissional x Tipo-Entidade · cód. 662' });
+      }
     }
 
     // Local
@@ -364,7 +373,12 @@ export class RenachService {
         (!temDuasRodas(e.categoriaPermitida) || temDuasRodas(e.categoriaPretendida));
       R('C03', 'Permitida ≤ pretendida', ok, 'Categoria permitida não supera a pretendida.', 'Categoria permitida superior à pretendida.', ret('388'), ['categoriaPermitida']);
     }
-    if (pretOk && ['03', '04'].includes(e.codigoExame)) {
+    if (pretOk && p.natureza === '1') {
+      v.push(regra('C04', 'Categoria permitida para candidato', CATEGORIAS_CANDIDATO.includes(e.categoriaPretendida),
+        `${e.categoriaPretendida} está entre as categorias de candidato (A, B, AB, X, XB).`,
+        `Candidato (primeira habilitação) só pode pretender A, B, AB, X ou XB.`,
+        { codigo: ret('345'), campos: ['categoriaPretendida'], fonte: 'INTERPRETACAO_POC', referencia: 'TR 181 · Consistência III.1 · cód. 345' }));
+    } else if (pretOk && ['03', '04'].includes(e.codigoExame)) {
       v.push(regra('C04', 'Categoria total do condutor (exames 03/04)', e.categoriaPretendida === p.dadosControle.categoriaAtual,
         `Categoria-Pretendida igual à Categoria-Atual (${p.dadosControle.categoriaAtual}).`,
         `Nos exames 03 e 04 informe a categoria total do condutor (${p.dadosControle.categoriaAtual}).`,
@@ -531,6 +545,7 @@ export class RenachService {
   private entrada159(sessao: string, b: Record<string, any>) {
     const motivo = String(b?.motivoRequerimento ?? b?.motivo ?? '').trim().toUpperCase();
     if (!MOTIVOS_REQUERIMENTO[motivo]) throw new BadRequestException({ codigo: '834', mensagem: ret('834').mensagem });
+    if (motivo === '1') throw new BadRequestException({ codigo: '369', mensagem: `${ret('369').mensagem} Use a TR 155 – Habilitar Candidato.` });
     if (motivo !== '5') {
       throw new BadRequestException({
         codigo: 'POC-159-00',
@@ -539,7 +554,7 @@ export class RenachService {
     }
     const numeroRegistro = String(b?.numeroRegistro ?? '').replace(/\D/g, '');
     if (!digitosCpfValidos(numeroRegistro)) throw new BadRequestException({ codigo: '752', mensagem: ret('752').mensagem });
-    const p = this.store.obter(sessao).prontuarios.find((x) => x.numeroRegistro === numeroRegistro);
+    const p = this.store.obter(sessao).prontuarios.find((x) => x.natureza === '2' && x.numeroRegistro === numeroRegistro);
     if (!p) throw new BadRequestException({ codigo: '016', mensagem: ret('016').mensagem });
     const s = (v: unknown) => String(v ?? '').trim();
     return {
@@ -680,7 +695,7 @@ export class RenachService {
     const atualizacaoApos = (aposData?: string) =>
       p.cursos.find((c) => c.codigoCurso === '30' && (!aposData || c.dataFimCurso > aposData)) ??
       p.exames.find((x) => x.codigoExame === '06' && x.resultado === '1' && (!aposData || x.dataExame > aposData));
-    if (d.primeiraHabilitacao < '1998-01-21') {
+    if ((d.primeiraHabilitacao ?? '9999') < '1998-01-21') {
       const at = atualizacaoApos();
       R('R10', 'Atualização para 1ª habilitação anterior a 21/01/1998', !!at,
         `Primeira habilitação ${br(d.primeiraHabilitacao)}; atualização registrada (${at && 'codigoCurso' in at ? 'Curso 30' : 'Exame 06'}).`,
@@ -689,7 +704,7 @@ export class RenachService {
       req.push({ id: 'R10', titulo: 'Atualização para 1ª habilitação anterior a 21/01/1998', status: 'NAO_APLICAVEL', impeditivo: false,
         detalhe: `Primeira habilitação ${br(d.primeiraHabilitacao)}.`, fonte: 'MANUAL', referencia: 'TR 159 · Regras do código · cód. 212' });
     }
-    const limite5 = somarAnos(dc.dataValidadeCnh, 5);
+    const limite5 = dc.dataValidadeCnh ? somarAnos(dc.dataValidadeCnh, 5) : '9999-12-31';
     if (limite5 < hoje) {
       const at = atualizacaoApos(ultima?.dataEmissao);
       req.push({ ...regra('R11', 'CNH vencida há mais de 5 anos: Curso 30 ou Exame 06', !!at,
@@ -754,7 +769,7 @@ export class RenachService {
 
   // ================================================================ comuns
   /** Visão do prontuário no formato do Retorno 2 da 575, com descrições para a tela. */
-  private visao(p: Prontuario) {
+  visao(p: Prontuario) {
     const v = clone(p);
     const ex = v.exames
       .map((x) => ({

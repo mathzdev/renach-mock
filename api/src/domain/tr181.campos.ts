@@ -37,14 +37,14 @@ export const CAMPOS_TR181: CampoTr181[] = [
     ajuda: '2 – Número-Registro (condutor). 1 – Formulário RENACH só é aceito para candidato (retorno 375).', fonte: 'MANUAL',
   },
   {
-    seq: null, chave: 'numero', nomeManual: 'Número', rotulo: 'Número-Registro', grupo: 'Condutor/Prontuário',
+    seq: null, chave: 'numero', nomeManual: 'Número', rotulo: 'Número (Registro ou Formulário RENACH)', grupo: 'Condutor/Prontuário',
     posicao: '039–049', tamanho: 11, formatoManual: 'AN', obrigatoriedade: 'OBRIGATORIO', tabelado: false, formato: '^[A-Z0-9]{11}$',
-    ajuda: '11 posições. Número-Registro tem as mesmas críticas do CPF (dígitos verificadores).', fonte: 'MANUAL',
+    ajuda: '11 posições. Tipo-Chave 2: Número-Registro (críticas do CPF). Tipo-Chave 1: Formulário RENACH do candidato (UF + 9 dígitos).', fonte: 'MANUAL',
   },
   {
     seq: null, chave: 'tipoEvento', nomeManual: 'Tipo-Evento', rotulo: 'Tipo de evento', grupo: 'Dados do Exame',
     posicao: '050–050', tamanho: 1, formatoManual: 'A', obrigatoriedade: 'FIXO', tabelado: true, formato: '^E$',
-    ajuda: 'E – Exame (C, I, B e O estão fora do escopo da POC).', fonte: 'MANUAL',
+    ajuda: 'E – Exame. O Evento C (Curso) tem tela própria na jornada de primeira habilitação; I, B e O estão fora do escopo.', fonte: 'MANUAL',
   },
   {
     seq: 1, chave: 'tipoAtualizacao', nomeManual: 'Tipo-Atualização', rotulo: 'Tipo de atualização', grupo: 'Condutor/Prontuário',

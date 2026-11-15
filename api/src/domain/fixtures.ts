@@ -1,4 +1,4 @@
-import { hojeIso, somarDias, somarMeses } from './datas';
+import { hojeIso, somarAnos, somarDias, somarMeses } from './datas';
 import { EventoExame, Prontuario } from './tipos';
 
 /**
@@ -39,6 +39,7 @@ export function criarFixtures(): Prontuario[] {
   const coletaRogerio = somarDias(hoje, -20);
 
   const marina: Prontuario = {
+    natureza: '2',
     numeroRegistro: '90011834250',
     processoEstadualReferencia: 'HAB-2026-118342',
     formularioRenachEmAndamento: 'SP926004517',
@@ -114,6 +115,7 @@ export function criarFixtures(): Prontuario[] {
   };
 
   const rogerio: Prontuario = {
+    natureza: '2',
     numeroRegistro: '90020250096',
     formularioRenachEmAndamento: 'SP926020250',
     dadosCadastrais: {
@@ -184,6 +186,7 @@ export function criarFixtures(): Prontuario[] {
   };
 
   const carla: Prontuario = {
+    natureza: '2',
     numeroRegistro: '90030360048',
     formularioRenachEmAndamento: 'SP926030360',
     dadosCadastrais: {
@@ -256,5 +259,86 @@ export function criarFixtures(): Prontuario[] {
     autorizacoes: [],
   };
 
-  return [marina, rogerio, carla];
+  // ---------------------------------------------------------------- candidata (primeira habilitação)
+  // Processo aberto há 4 meses: já tem 03, 04, 05, Curso 31 e Curso 32. Faltam o Curso 34
+  // (simulador, categoria B) e o Exame 02 (prática 4 rodas) para a TR 155.
+  const d = (n: number) => somarDias(hoje, -n);
+  const CFC = '99000003000192';
+  const INSTRUTOR = '90000000418';
+  const BANCA = '99000004000137';
+  const EXAMINADORA = '90000000507';
+  const julia: Prontuario = {
+    natureza: '1',
+    numeroRegistro: null,
+    formularioRenachEmAndamento: 'SP926050011',
+    dadosCadastrais: {
+      nomeCondutorCivil: 'JULIA RIBEIRO SANTANA',
+      nomeSocial: null,
+      filiacaoAfetiva1: null,
+      filiacaoAfetiva2: null,
+      dataNascimento: '2006-03-22',
+      sexo: '2',
+      nomeMae: 'PATRICIA RIBEIRO SANTANA',
+      nomePai: 'MARCOS SANTANA',
+      tipoDocumentoIdentidade: '1',
+      documentoIdentidade: '900500110 SSP SP',
+      cpf: '00000000515',
+      localidadeNascimento: '07107',
+      localidadeNascimentoDescricao: 'São Paulo/SP',
+      enderecoLogradouro: 'RUA DEMONSTRATIVA DOS IPES',
+      enderecoNumero: '501',
+      enderecoComplemento: null,
+      enderecoBairro: 'VILA EXEMPLO',
+      enderecoCep: '05000000',
+      enderecoMunicipio: '07107',
+      enderecoMunicipioDescricao: 'São Paulo',
+      enderecoUf: 'SP',
+      nacionalidade: '1',
+      dataCadastramento: d(120),
+      primeiraHabilitacao: null,
+      ufDominio: 'SP',
+      ddd: '11',
+      telefoneCelular: '900000501',
+      email: 'julia.candidata@exemplo.invalid',
+    },
+    dadosControle: {
+      situacaoCnh: '0',
+      situacaoCnhAnterior: '0',
+      motivoRequerimento: null,
+      permissionario: '0',
+      codigoTransacaoUltimaAtualizacao: '181',
+      numeroFormularioRenach: 'SP926050011',
+      numeroFormularioCnh: '',
+      cancelamento: '0',
+      categoriaAtual: '',
+      categoriaRebaixada: null,
+      categoriaAutorizada: null,
+      dataValidadeCnh: null,
+      observacaoCnh: [],
+      dataUltimaEmissaoHistorico: null,
+      datasInicioCategoria: {},
+    },
+    toxicologico: { dataColeta: null, dataValidade: null, situacao: null, cnpjLaboratorio: null, numeroLaudo: null, prazoRealizacao: null },
+    exames: [
+      exame({ codigoExame: '03', dataExame: d(110), resultado: '1', dataValidade: somarAnos(d(110), 10) }),
+      exame({ codigoExame: '04', dataExame: d(105), resultado: '1', cpfExaminador1: PSICOLOGO }),
+      exame({ codigoExame: '05', dataExame: d(70), resultado: '1', cpfExaminador1: EXAMINADORA, cnpjEntidadeCredenciada: BANCA }),
+    ],
+    cursos: [
+      { tipoEvento: 'C', codigoCurso: '31', dataInicioCurso: d(100), dataFimCurso: d(80), cargaHoraria: '045', cnpjEntidadeCredenciada: CFC, cpfInstrutor: INSTRUTOR,
+        municipioCurso: '07107', ufCurso: 'SP', dataValidade: null, categoria: '', observacoesCurso: '99', procedencia: 'FIXTURE' },
+      { tipoEvento: 'C', codigoCurso: '32', dataInicioCurso: d(60), dataFimCurso: d(20), cargaHoraria: '020', cnpjEntidadeCredenciada: CFC, cpfInstrutor: INSTRUTOR,
+        municipioCurso: '07107', ufCurso: 'SP', dataValidade: null, categoria: 'B', observacoesCurso: '99', procedencia: 'FIXTURE' },
+    ],
+    bloqueios: [],
+    ocorrencias: [],
+    emissoes: [],
+    hicom: [
+      { id: 'FX-H-301', transacao: '151', data: d(120), descricao: 'Cadastrar Candidato (massa demonstrativa).' },
+      { id: 'FX-H-302', transacao: '181', data: d(20), descricao: 'Inclusão do Curso 32 – Aulas Práticas 04 Rodas (massa demonstrativa).' },
+    ],
+    autorizacoes: [],
+  };
+
+  return [marina, rogerio, carla, julia];
 }

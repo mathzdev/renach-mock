@@ -54,14 +54,21 @@ export interface EventoExame {
 export interface EventoCurso {
   tipoEvento: 'C';
   codigoCurso: string;
+  modalidade?: string | null;
+  numeroCertificado?: string | null;
   dataInicioCurso: string;
   dataFimCurso: string;
+  cargaHoraria?: string | null; // horas; no Curso 34, minutos
   cnpjEntidadeCredenciada: string;
+  cpfInstrutor?: string | null;
   municipioCurso: string;
   ufCurso: string;
   dataValidade: string | null;
   categoria: string;
-  procedencia: 'FIXTURE';
+  observacoesCurso?: string;
+  /** Controle da POC (não faz parte do leiaute). */
+  procedencia: 'FIXTURE' | 'SIMULACAO_TR181';
+  registradoEm?: string;
 }
 
 export interface EventoBloqueio {
@@ -104,13 +111,20 @@ export interface Emissao {
 }
 
 export interface Prontuario {
-  numeroRegistro: string;
+  /** Campo pré-codificado NATUREZA: 1 – Candidato, 2 – Condutor. */
+  natureza: '1' | '2';
+  /** Gerado pela BINCO só na emissão (TR 171, gráfica). Candidato não tem: null. */
+  numeroRegistro: string | null;
   /** Processo estadual. Referência contextual, NUNCA chave RENACH. */
   processoEstadualReferencia?: string;
-  /** Formulário RENACH do processo de renovação aberto pelo DETRAN (usado na TR 159). */
+  /** Formulário RENACH do processo em andamento: renovação (TR 159) ou, no candidato, o da TR 151 (chave Tipo-Chave 1). */
   formularioRenachEmAndamento: string;
   dadosCadastrais: {
     nomeCondutorCivil: string;
+    nomeSocial?: string | null;
+    filiacaoAfetiva1?: string | null;
+    filiacaoAfetiva2?: string | null;
+    tipoDocumentoIdentidade?: string;
     dataNascimento: string;
     sexo: '1' | '2'; // 1 Masculino, 2 Feminino
     nomeMae: string;
@@ -127,9 +141,9 @@ export interface Prontuario {
     enderecoMunicipio: string;
     enderecoMunicipioDescricao: string;
     enderecoUf: string;
-    nacionalidade: '1' | '2' | '3';
+    nacionalidade: '1' | '2' | '3' | '4';
     dataCadastramento: string;
-    primeiraHabilitacao: string;
+    primeiraHabilitacao: string | null; // candidato: null até a TR 155
     ufDominio: string;
     ddd: string | null;
     telefoneCelular: string | null;
@@ -139,17 +153,17 @@ export interface Prontuario {
     situacaoCnh: string;
     situacaoCnhAnterior: string;
     motivoRequerimento: string | null;
-    permissionario: '1' | '2' | '3';
+    permissionario: '0' | '1' | '2' | '3'; // 0: candidato sem CNH (valor da POC)
     codigoTransacaoUltimaAtualizacao: string;
     numeroFormularioRenach: string;
     numeroFormularioCnh: string;
     cancelamento: string;
-    categoriaAtual: string;
+    categoriaAtual: string; // candidato: brancos (Consistência XIII da 155)
     categoriaRebaixada: string | null;
     categoriaAutorizada: string | null;
-    dataValidadeCnh: string;
+    dataValidadeCnh: string | null;
     observacaoCnh: string[];
-    dataUltimaEmissaoHistorico: string;
+    dataUltimaEmissaoHistorico: string | null;
     datasInicioCategoria: Partial<Record<'X' | 'A' | 'B' | 'C' | 'D' | 'E', string>>;
   };
   toxicologico: {
@@ -171,8 +185,8 @@ export interface Prontuario {
 
 export interface Autorizacao {
   id: string;
-  transacao: '159';
-  motivoRequerimento: '5';
+  transacao: '159' | '155';
+  motivoRequerimento: '5' | '1';
   numeroFormularioRenach: string;
   categoria: string;
   dataValidade: string;
