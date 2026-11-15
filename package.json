@@ -1,0 +1,21 @@
+{
+  "name": "renach-mock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mock funcional da jornada RENACH (TR 575 → 181-E → 159 Motivo 5): React + NestJS + banco em memória. Dados fictícios.",
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w api\" \"npm run dev -w web\"",
+    "build": "npm run build -w web && npm run build -w api",
+    "start": "npm run build && npm run start -w api",
+    "test": "npm test -w api",
+    "test:e2e": "node e2e/jornada.e2e.mjs",
+    "typecheck": "npm run typecheck -w api && npm run typecheck -w web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  }
+}
